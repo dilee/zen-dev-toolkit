@@ -692,7 +692,7 @@ struct Base64View: View {
                     
                     if inputText.isEmpty && !isDragging {
                         VStack(spacing: 12) {
-                            Image(systemName: "arrow.down.doc")
+                            Image(systemName: "doc.badge.arrow.down")
                                 .font(.system(size: 32))
                                 .foregroundColor(Color.secondary.opacity(0.3))
                             Text(mode == .encode ? 
@@ -2054,12 +2054,7 @@ struct ComponentRow: View {
     }
 }
 
-struct HashGeneratorView: View {
-    var body: some View {
-        Text("Hash Generator - Coming Soon")
-            .foregroundColor(.secondary)
-    }
-}
+// HashGeneratorView is imported from its own file
 
 struct UUIDGeneratorView: View {
     var body: some View {
