@@ -2055,13 +2055,7 @@ struct ComponentRow: View {
 }
 
 // HashGeneratorView is imported from its own file
-
-struct UUIDGeneratorView: View {
-    var body: some View {
-        Text("UUID Generator - Coming Soon")
-            .foregroundColor(.secondary)
-    }
-}
+// UUIDGeneratorView is imported from its own file
 
 #Preview {
     ContentView()
