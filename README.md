@@ -134,7 +134,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Dileesha Rajapakse**
 - GitHub: [@dilee](https://github.com/dilee)
 
-## 🙏 Acknowledgments
+## Support
+
+If you find this useful, you can [buy me a coffee ☕ on Ko-fi](https://ko-fi.com/dilee).
+
+## Acknowledgments
 
 - Built with SwiftUI and love for the developer community
 - Inspired by the need for quick, offline developer utilities

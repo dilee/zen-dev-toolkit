@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "wrench", accessibilityDescription: "Dev Toolkit")
+            button.image = NSImage(systemSymbolName: "shippingbox.fill", accessibilityDescription: "Dev Toolkit")
             button.action = #selector(handleMenuBarClick)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.target = self
