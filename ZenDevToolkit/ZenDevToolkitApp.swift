@@ -41,8 +41,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         popover = NSPopover()
         popover?.behavior = .transient
         popover?.contentViewController = NSHostingController(rootView: ContentView())
-        // Allow the popover to be resizable
-        popover?.contentViewController?.view.setFrameSize(NSSize(width: 400, height: 500))
+        // Set initial size but allow it to be dynamic
+        popover?.contentSize = NSSize(width: 400, height: 520)
     }
     
     @objc private func handleMenuBarClick() {

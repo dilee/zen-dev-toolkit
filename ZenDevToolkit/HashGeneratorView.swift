@@ -129,10 +129,11 @@ struct HashGeneratorView: View {
                                     .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
                             )
                     )
-                    .frame(height: 50)
+                    .frame(height: 40)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
             
             // Input section
@@ -241,7 +242,7 @@ struct HashGeneratorView: View {
                                 .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
                         )
                 )
-                .frame(minHeight: 80, idealHeight: 100, maxHeight: 120)
+                .frame(minHeight: 60, idealHeight: 80, maxHeight: 100)
                 .padding(.horizontal, 16)
             }
             
@@ -349,7 +350,7 @@ struct HashGeneratorView: View {
                                 )
                         )
                 )
-                .frame(minHeight: 60, idealHeight: 80)
+                .frame(minHeight: 50, idealHeight: 80)
                 .padding(.horizontal, 16)
             }
             
@@ -407,7 +408,7 @@ struct HashGeneratorView: View {
                     .padding(.bottom, 16)
             }
             
-            Spacer()
+            Spacer(minLength: 0)
         }
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
