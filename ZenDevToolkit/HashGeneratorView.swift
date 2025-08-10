@@ -69,7 +69,7 @@ struct HashGeneratorView: View {
                         }
                     }
                     .toggleStyle(.checkbox)
-                    .onChange(of: isHMAC) { _, _ in
+                    .onChange(of: isHMAC) {
                         generateHash()
                     }
                     
@@ -82,7 +82,7 @@ struct HashGeneratorView: View {
                         }
                     }
                     .toggleStyle(.checkbox)
-                    .onChange(of: isUppercase) { _, _ in
+                    .onChange(of: isUppercase) {
                         generateHash()
                     }
                     
@@ -109,7 +109,7 @@ struct HashGeneratorView: View {
                             .font(.system(size: 12, design: .monospaced))
                             .scrollContentBackground(.hidden)
                             .padding(8)
-                            .onChange(of: secretKey) { _, _ in
+                            .onChange(of: secretKey) {
                                 generateHash()
                             }
                         
@@ -211,7 +211,7 @@ struct HashGeneratorView: View {
                         .padding(12)
                         .focused($isInputFocused)
                         .disabled(selectedFileURL != nil)
-                        .onChange(of: inputText) { _, _ in
+                        .onChange(of: inputText) {
                             updateCharacterCount()
                             if selectedFileURL == nil {
                                 generateHash()
@@ -401,7 +401,7 @@ struct HashGeneratorView: View {
                 TextField("Paste hash to compare", text: $compareHash)
                     .font(.system(size: 12, design: .monospaced))
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onChange(of: compareHash) { _, _ in
+                    .onChange(of: compareHash) {
                         performComparison()
                     }
                     .padding(.horizontal, 16)

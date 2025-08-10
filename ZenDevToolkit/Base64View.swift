@@ -105,7 +105,7 @@ struct Base64View: View {
                         }
                     }
                     .toggleStyle(.checkbox)
-                    .onChange(of: isURLSafe) { _ in
+                    .onChange(of: isURLSafe) {
                         if !inputText.isEmpty {
                             processBase64()
                         }
@@ -122,7 +122,7 @@ struct Base64View: View {
                             }
                         }
                         .toggleStyle(.checkbox)
-                        .onChange(of: addLineBreaks) { _ in
+                        .onChange(of: addLineBreaks) {
                             if !inputText.isEmpty {
                                 processBase64()
                             }
@@ -618,7 +618,7 @@ struct Base64View: View {
             
             // Determine if file is likely binary
             let textExtensions = ["txt", "json", "xml", "csv", "md", "yml", "yaml", "html", "css", "js", "ts", "swift", "py", "java", "c", "cpp", "h", "m", "rb", "go", "rs", "php", "sql", "sh", "bash"]
-            let isBinary = !textExtensions.contains(fileExtension) && !fileExtension.isEmpty
+            _ = !textExtensions.contains(fileExtension) && !fileExtension.isEmpty
             
             if mode == .encode {
                 // Try to read as text first

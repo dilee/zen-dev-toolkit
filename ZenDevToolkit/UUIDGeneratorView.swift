@@ -71,7 +71,7 @@ struct UUIDGeneratorView: View {
                         }
                     }
                     .toggleStyle(.checkbox)
-                    .onChange(of: isUppercase) { _, _ in
+                    .onChange(of: isUppercase) {
                         reformatUUIDs()
                     }
                     
