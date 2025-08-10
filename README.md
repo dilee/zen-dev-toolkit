@@ -1,10 +1,11 @@
-# ZenDevToolkit
+# ZenDevToolkit (Beta)
 
 A lightweight macOS menu bar application that provides developers with quick access to commonly-needed utility functions without opening a web browser.
 
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.0--beta.1-yellow)
 
 ## 🚀 Features
 

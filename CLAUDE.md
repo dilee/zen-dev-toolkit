@@ -116,3 +116,11 @@ To add a new tool:
 - QR code generator
 - Custom keyboard shortcuts
 - Bulk file processing
+
+## Important Instructions
+
+### Git Commit Rules
+- NEVER include any mentions of Claude, AI, or automated generation in commit messages
+- Write commit messages as if they were written by a human developer
+- Keep commit messages professional and focused solely on the changes made
+- Use conventional commit format (feat:, fix:, docs:, etc.) when appropriate
