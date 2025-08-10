@@ -26,9 +26,7 @@ jobs:
         xcodebuild -scheme ZenDevToolkit \
           -configuration Release \
           -derivedDataPath ./build \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGN_IDENTITY="-" \
           clean build
     
     - name: Create App Bundle
@@ -47,13 +45,10 @@ jobs:
         echo "SHA256: $SHA256"
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
-        release_name: ZenDevToolkit ${{ github.ref }}
+        name: ZenDevToolkit ${{ github.ref_name }}
         body: |
           ## Installation
           
@@ -66,6 +61,10 @@ jobs:
           ### Direct Download
           Download the zip file below and extract ZenDevToolkit.app to your Applications folder.
           
+          **Note**: This is an unsigned beta release. To open the app for the first time:
+          1. Right-click the app and select "Open"
+          2. Click "Open" in the security dialog
+          
           ## Changes
           See [CHANGELOG.md](https://github.com/dilee/zen-dev-toolkit/blob/main/CHANGELOG.md) for details.
           
@@ -73,16 +72,9 @@ jobs:
           SHA256: `${{ steps.sha256.outputs.sha256 }}`
         draft: false
         prerelease: false
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
+        files: ZenDevToolkit.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ZenDevToolkit.zip
-        asset_name: ZenDevToolkit.zip
-        asset_content_type: application/zip
     
     - name: Update Homebrew Tap
       run: |
