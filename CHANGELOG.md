@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.2] - 2025-01-10
+
+### Added
+- Custom app icon replacing the placeholder
+- Ad-hoc code signing for slightly better Gatekeeper behavior
+
+### Fixed
+- GitHub Actions workflow now uses modern release action
+- Removed deprecated GitHub Actions commands
+
+### Changed
+- Updated release notes to include security information for unsigned apps
+
 ## [1.0.0-beta.1] - 2025-01-10
 
 ### Added
@@ -50,5 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.1...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.2...HEAD
+[1.0.0-beta.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.1...v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/dilee/zen-dev-toolkit/releases/tag/v1.0.0-beta.1
