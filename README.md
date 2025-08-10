@@ -47,6 +47,26 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 ## 🛠️ Installation
 
+### Via Homebrew (Recommended)
+
+Install using Homebrew Cask:
+```bash
+brew tap dilee/tap
+brew install --cask zen-dev-toolkit
+```
+
+To update to the latest version:
+```bash
+brew upgrade --cask zen-dev-toolkit
+```
+
+### Direct Download
+
+1. Download the latest release from the [Releases page](https://github.com/dilee/zen-dev-toolkit/releases)
+2. Unzip the downloaded file
+3. Move `ZenDevToolkit.app` to your Applications folder
+4. **First launch**: Right-click the app and select "Open" (required for unsigned beta releases)
+
 ### Building from Source
 
 1. Clone the repository:
@@ -63,19 +83,16 @@ A lightweight macOS menu bar application that provides developers with quick acc
 3. Build and run:
    - Select your Mac as the build target
    - Press ⌘+R or click the Run button in Xcode
-   - The app will appear as a wrench icon in your menu bar
-
-### Direct Download
-*Coming soon: Pre-built releases will be available in the Releases section*
+   - The app will appear in your menu bar
 
 ### Mac App Store
-*Coming soon: Planning to release on Mac App Store for $3.99*
+*Coming soon: Planning to release on Mac App Store*
 
 ## 💻 Usage
 
-1. **Launch the app**: After building, look for the wrench icon in your menu bar
+1. **Launch the app**: Look for the toolbox icon (📦) in your menu bar
 2. **Open tools**: Left-click the menu bar icon to open the tool popover
-3. **Switch tools**: Click the tool buttons at the top to switch between utilities
+3. **Switch tools**: Use the segmented control at the top to switch between utilities
 4. **Access menu**: Right-click the menu bar icon for About and Quit options
 
 ### Keyboard Shortcuts
