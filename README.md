@@ -1,5 +1,7 @@
 # ZenDevToolkit (Beta)
 
+![ZenDevToolkit Hero Banner](Docs/Marketing/Banners/hero-banner.png)
+
 A lightweight macOS menu bar application that provides developers with quick access to commonly-needed utility functions without opening a web browser.
 
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
