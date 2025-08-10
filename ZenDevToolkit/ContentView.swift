@@ -692,7 +692,7 @@ struct Base64View: View {
                     
                     if inputText.isEmpty && !isDragging {
                         VStack(spacing: 12) {
-                            Image(systemName: "doc.badge.arrow.down")
+                            Image(systemName: "arrow.down.doc")
                                 .font(.system(size: 32))
                                 .foregroundColor(Color.secondary.opacity(0.3))
                             Text(mode == .encode ? 
