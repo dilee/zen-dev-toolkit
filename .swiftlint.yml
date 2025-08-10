@@ -1,0 +1,133 @@
+# SwiftLint Configuration for ZenDevToolkit
+
+# Paths to include
+included:
+  - ZenDevToolkit
+  - ZenDevToolkitTests
+  - ZenDevToolkitUITests
+
+# Paths to exclude
+excluded:
+  - Carthage
+  - Pods
+  - .build
+  - DerivedData
+  - ZenDevToolkit.xcodeproj
+
+# Rules
+disabled_rules:
+  - todo
+  - trailing_whitespace
+  - line_length
+
+opt_in_rules:
+  - attributes
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - empty_xctest_method
+  - explicit_init
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - modifier_order
+  - multiline_arguments
+  - multiline_function_chains
+  - multiline_literal_brackets
+  - multiline_parameters
+  - multiline_parameters_brackets
+  - operator_usage_whitespace
+  - optional_enum_case_matching
+  - prefer_self_type_over_type_of_self
+  - prefer_zero_over_explicit_init
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - single_test_class
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - yoda_condition
+
+# Rule Configuration
+line_length:
+  warning: 120
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 500
+  error: 1000
+
+function_body_length:
+  warning: 50
+  error: 100
+
+function_parameter_count:
+  warning: 6
+  error: 8
+
+type_name:
+  min_length: 3
+  max_length:
+    warning: 40
+    error: 50
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - URL
+    - x
+    - y
+    - z
+
+nesting:
+  type_level:
+    warning: 2
+    error: 3
+  function_level:
+    warning: 3
+    error: 5
+
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+# Custom Rules
+custom_rules:
+  no_print_statements:
+    name: "Print Statements"
+    regex: '(^|\s)print\('
+    message: "Use proper logging instead of print statements"
+    severity: warning
+
+  no_hardcoded_strings:
+    name: "Hardcoded Strings"
+    regex: '"[^"]{30,}"'
+    message: "Consider extracting long strings to constants"
+    severity: warning
+    excluded:
+      - ".*Test.*"

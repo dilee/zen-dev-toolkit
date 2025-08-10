@@ -1,0 +1,27 @@
+# <type>(<scope>): <subject> (50 chars)
+
+# <body> (72 chars per line)
+# Explain what and why, not how
+
+# <footer>
+# Closes #issue-number
+# BREAKING CHANGE: description
+
+# ─────────────────────────────────────────────────────────────────
+# Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# 
+# Scopes: json, base64, url, hash, uuid, ui, menu, core, deps, config
+#
+# Remember:
+# - Use imperative mood in subject line (e.g., "add" not "added")
+# - Don't capitalize first letter of subject
+# - Don't end subject with period
+# - Separate subject from body with blank line
+# - Wrap body at 72 characters
+# - Use body to explain what and why vs. how
+# 
+# Examples:
+# feat(json): add syntax highlighting for output
+# fix(ui): correct window resizing constraints
+# docs: update installation instructions in README
+# ─────────────────────────────────────────────────────────────────
