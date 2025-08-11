@@ -18,13 +18,29 @@ struct DevToolkitApp: App {
     }
 }
 
+// Custom panel that can appear above fullscreen apps
+class ToolkitPanel: NSPanel {
+    override var canBecomeKey: Bool {
+        return true
+    }
+    
+    override var canBecomeMain: Bool {
+        return true
+    }
+    
+    override var acceptsFirstResponder: Bool {
+        return true
+    }
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var statusItem: NSStatusItem?
-    private var popover: NSPopover?
+    private var window: NSPanel?
     private var eventMonitor: Any?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
+        setupWindow()
         setupEventMonitor()
     }
     
@@ -37,12 +53,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.target = self
         }
+    }
+    
+    private func setupWindow() {
+        // Create a custom panel that can appear above fullscreen apps
+        window = ToolkitPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 680),
+            styleMask: [.borderless, .fullSizeContentView, .utilityWindow, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
         
-        popover = NSPopover()
-        popover?.behavior = .transient
-        popover?.contentViewController = NSHostingController(rootView: ContentView())
-        // Set initial size but allow it to be dynamic
-        popover?.contentSize = NSSize(width: 400, height: 520)
+        if let window = window {
+            window.contentViewController = NSHostingController(rootView: ContentView())
+            window.backgroundColor = .clear
+            window.isOpaque = false
+            window.hasShadow = true
+            // Use a very high window level
+            window.level = NSWindow.Level(rawValue: Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue))
+            // Critical: Allow the window to appear in all spaces including fullscreen
+            window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+            window.isMovableByWindowBackground = false
+            window.isReleasedWhenClosed = false
+            window.hidesOnDeactivate = false
+            window.isFloatingPanel = true
+            window.becomesKeyOnlyIfNeeded = false
+            
+            // Add rounded corners
+            window.contentView?.wantsLayer = true
+            window.contentView?.layer?.cornerRadius = 10
+            window.contentView?.layer?.masksToBounds = true
+        }
     }
     
     @objc private func handleMenuBarClick() {
@@ -51,7 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         if event.type == .rightMouseUp {
             showMenu()
         } else {
-            togglePopover()
+            toggleWindow()
         }
     }
     
@@ -84,30 +125,67 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         NSApp.terminate(nil)
     }
     
-    private func togglePopover() {
-        if let popover = popover {
-            if popover.isShown {
-                closePopover()
-            } else {
-                openPopover()
+    private func toggleWindow() {
+        if let window = window, window.isVisible {
+            closeWindow()
+        } else {
+            showWindow()
+        }
+    }
+    
+    private func showWindow() {
+        guard let button = statusItem?.button,
+              let buttonWindow = button.window,
+              let window = window else { return }
+        
+        // Calculate position - directly below the menu bar button
+        let buttonFrame = buttonWindow.convertToScreen(button.frame)
+        let x = buttonFrame.midX - 210  // Center under button
+        let y = buttonFrame.minY - window.frame.height  // Position below menu bar
+        
+        window.setFrameOrigin(NSPoint(x: x, y: y))
+        
+        // Ensure we're using the highest possible window level
+        window.level = NSWindow.Level(rawValue: Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue))
+        window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        
+        // Make the window visible and active
+        window.orderFrontRegardless()
+        window.makeKeyAndOrderFront(nil)
+        
+        // Force activate our app
+        NSApp.activate(ignoringOtherApps: true)
+        
+        // Make the first text field the first responder
+        DispatchQueue.main.async {
+            window.makeFirstResponder(window.contentView)
+            // Force the window to the front again after a small delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                window.orderFrontRegardless()
             }
         }
     }
     
-    private func openPopover() {
-        guard let button = statusItem?.button else { return }
-        popover?.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
-        popover?.contentViewController?.view.window?.makeKey()
-    }
-    
-    private func closePopover() {
-        popover?.performClose(nil)
+    private func closeWindow() {
+        window?.orderOut(nil)
     }
     
     private func setupEventMonitor() {
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-            if let popover = self?.popover, popover.isShown {
-                self?.closePopover()
+            if let window = self?.window, window.isVisible {
+                let mouseLocation = NSEvent.mouseLocation
+                if !window.frame.contains(mouseLocation) {
+                    // Check if click is not on the status item
+                    if let button = self?.statusItem?.button,
+                       let buttonWindow = button.window {
+                        let buttonFrame = buttonWindow.convertToScreen(button.frame)
+                        if !buttonFrame.contains(mouseLocation) {
+                            self?.closeWindow()
+                        }
+                    } else {
+                        self?.closeWindow()
+                    }
+                }
             }
         }
     }

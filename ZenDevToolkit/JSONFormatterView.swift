@@ -57,7 +57,6 @@ struct JSONFormatterView: View {
                         .font(.system(size: 12, design: .monospaced))
                         .scrollContentBackground(.hidden)
                         .padding(12)
-                        .focused($isInputFocused)
                         .onChange(of: inputText) {
                             updateCharacterCount()
                             if !inputText.isEmpty {

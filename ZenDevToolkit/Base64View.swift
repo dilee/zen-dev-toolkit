@@ -217,7 +217,6 @@ struct Base64View: View {
                         .font(.system(size: 12, design: .monospaced))
                         .scrollContentBackground(.hidden)
                         .padding(12)
-                        .focused($isInputFocused)
                         .disabled(isProcessing)
                         .onChange(of: inputText) {
                             updateCharacterCount()

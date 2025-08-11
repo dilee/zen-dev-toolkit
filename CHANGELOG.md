@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.4] - 2025-01-11
+
+### Added
+- Undo/Redo support for all text editors
+  - Standard keyboard shortcuts (⌘Z/⌘⇧Z)
+  - Full undo history for each tool
+  - Custom UndoableTextEditor component
+
+### Fixed
+- **Critical**: App now properly appears above fullscreen applications
+  - Changed from NSWindow to NSPanel for better window management
+  - Uses assistive technology window level for maximum visibility
+  - Added proper collection behaviors for fullscreen spaces
+- Improved window focus and text field activation
+
+### Changed
+- Window system completely refactored for better macOS integration
+- Enhanced window positioning and display logic
+
 ## [1.0.0-beta.3] - 2025-01-11
 
 ### Added
@@ -81,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.3...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.4...HEAD
+[1.0.0-beta.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.3...v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.2...v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.1...v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/dilee/zen-dev-toolkit/releases/tag/v1.0.0-beta.1

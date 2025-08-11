@@ -12,7 +12,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Compact tool selector without scrolling
+            // FIXED header that NEVER moves
             HStack(spacing: 6) {
                 CompactToolButton(icon: "curlybraces", title: "JSON", tag: "JSON", selection: $selectedTool)
                 CompactToolButton(icon: "abc", title: "Base64", tag: "Base64", selection: $selectedTool)
@@ -20,12 +20,14 @@ struct ContentView: View {
                 CompactToolButton(icon: "number.square", title: "Hash", tag: "Hash", selection: $selectedTool)
                 CompactToolButton(icon: "key", title: "UUID", tag: "UUID", selection: $selectedTool)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(height: 60)
+            .frame(maxWidth: .infinity)
             .background(.ultraThinMaterial)
             
-            // Tool content
-            Group {
+            // Tool content - use fixed size container
+            VStack {
                 switch selectedTool {
                 case "JSON":
                     JSONFormatterView()
@@ -41,11 +43,11 @@ struct ContentView: View {
                     Text("Select a tool")
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: 420, height: 620) // Fixed size for all views
             .background(Color(NSColor.windowBackgroundColor))
+            .animation(.none, value: selectedTool) // Disable animation
         }
-        .frame(minWidth: 320, idealWidth: 400, maxWidth: 600, 
-               minHeight: 400, idealHeight: 520, maxHeight: 800)
+        .frame(width: 420, height: 680) // Total height: 60 (header) + 620 (content)
     }
 }
 
