@@ -30,19 +30,26 @@ jobs:
         KEYCHAIN_NAME="build.keychain"
         KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
         
+        echo "🔐 Creating temporary keychain..."
         security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
         security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
         
         # Import certificate
+        echo "📥 Importing Developer ID certificate..."
         echo "$DEVELOPER_ID_APPLICATION_P12" | base64 --decode > certificate.p12
-        security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$DEVELOPER_ID_APPLICATION_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+        security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$DEVELOPER_ID_APPLICATION_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
         
         # Set key partition list
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
         
-        # Add to search list
+        # Add to search list and set as default
         security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
+        security default-keychain -s "$KEYCHAIN_NAME"
+        
+        # Verify certificate import
+        echo "🔍 Verifying certificate import..."
+        security find-identity -v -p codesigning "$KEYCHAIN_NAME"
         
         # Clean up
         rm certificate.p12
@@ -53,10 +60,12 @@ jobs:
         rm -rf build
         mkdir -p build
         
-        # Build archive with signing
+        # Build archive with signing - force the correct certificate
         xcodebuild -scheme ZenDevToolkit \
           -configuration Release \
           -archivePath build/ZenDevToolkit.xcarchive \
+          CODE_SIGN_IDENTITY="Developer ID Application: Dileesha Rajapakse (3Z86BP8YAG)" \
+          DEVELOPMENT_TEAM="3Z86BP8YAG" \
           archive
         
         # Export signed app
