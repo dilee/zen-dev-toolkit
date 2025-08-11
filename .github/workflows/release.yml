@@ -85,10 +85,12 @@ jobs:
       run: |
         echo "🔍 Verifying code signature..."
         codesign --verify --verbose=2 "build/export/ZenDevToolkit.app"
-        codesign -dv --verbose=4 "build/export/ZenDevToolkit.app"
         
-        echo "🔍 Checking signing identity..."
-        codesign -dv "build/export/ZenDevToolkit.app" 2>&1 | grep "Authority"
+        echo "🔍 Checking signing details..."
+        codesign -dv --verbose=4 "build/export/ZenDevToolkit.app" 2>&1
+        
+        echo "🔍 Extracting signing authority..."
+        codesign -dv "build/export/ZenDevToolkit.app" 2>&1 | grep "Authority" || true
     
     - name: Create ZIP for Notarization
       run: |
