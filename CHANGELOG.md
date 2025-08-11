@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.5] - 2025-01-11
+
+### Added
+- File upload functionality for JSON formatter
+  - New "File" button to load JSON files directly
+  - Supports .json, .txt, and plain text files
+  - Automatic validation on file load
+
+### Improved
+- **UI Polish**: Modernized scrollbar appearance across all text editors
+  - Overlay-style scrollbars that auto-hide when not in use
+  - Light knob style for better visibility in dark mode
+  - Consistent scrollbar behavior across all tools
+- **Text Editor Consistency**: Extended UndoableTextEditor to all tools
+  - URL encoder now has undo/redo support
+  - Hash generator has improved text editing
+  - Base64 encoder/decoder has better text handling
+- **Visual Refinements**:
+  - Centered all placeholder texts for cleaner appearance
+  - Fixed UUID generator spacing (top and bottom padding)
+  - Improved overall visual consistency
+
+### Changed
+- All text input areas now use the custom UndoableTextEditor component
+- Placeholder texts are now centered both horizontally and vertically
+
 ## [1.0.0-beta.4] - 2025-01-11
 
 ### Added
@@ -100,7 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.4...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.5...HEAD
+[1.0.0-beta.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.4...v1.0.0-beta.5
 [1.0.0-beta.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.3...v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.2...v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.1...v1.0.0-beta.2
