@@ -196,21 +196,18 @@ struct URLEncoderView: View {
                 .padding(.horizontal, 16)
                 
                 ZStack(alignment: .topLeading) {
-                    TextEditor(text: $inputText)
-                        .font(.system(size: 12, design: .monospaced))
-                        .scrollContentBackground(.hidden)
-                        .padding(12)
-                        .onChange(of: inputText) {
-                            updateCharacterCount()
-                            if !inputText.isEmpty {
-                                processURL()
-                            } else {
-                                outputText = ""
-                                outputCharCount = 0
-                                parsedParams = []
-                                urlComponents = nil
-                            }
+                    UndoableTextEditor(text: $inputText) { newText in
+                        updateCharacterCount()
+                        if !newText.isEmpty {
+                            processURL()
+                        } else {
+                            outputText = ""
+                            outputCharCount = 0
+                            parsedParams = []
+                            urlComponents = nil
                         }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     if inputText.isEmpty {
                         Text(mode == .encode ? 
@@ -218,7 +215,8 @@ struct URLEncoderView: View {
                              (mode == .decode ? "Paste encoded URL to decode..." : "Paste URL to analyze..."))
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .multilineTextAlignment(.center)
                             .allowsHitTesting(false)
                     }
                 }
@@ -510,13 +508,8 @@ struct URLEncoderView: View {
                     .padding(.top, 12)
                     
                     ZStack(alignment: .topLeading) {
-                        ScrollView {
-                            Text(outputText)
-                                .font(.system(size: 12, design: .monospaced))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(12)
-                                .textSelection(.enabled)
-                        }
+                        UndoableTextEditor(text: $outputText)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         
                         if outputText.isEmpty {
                             Text(mode == .encode ? 
@@ -524,7 +517,9 @@ struct URLEncoderView: View {
                                  "Decoded text will appear here...")
                                 .font(.system(size: 12, design: .monospaced))
                                 .foregroundColor(Color.secondary.opacity(0.4))
-                                .padding(12)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .multilineTextAlignment(.center)
+                                .allowsHitTesting(false)
                         }
                     }
                     .background(

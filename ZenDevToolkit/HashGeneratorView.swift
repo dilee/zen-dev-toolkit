@@ -105,13 +105,10 @@ struct HashGeneratorView: View {
                     }
                     
                     ZStack(alignment: .topLeading) {
-                        TextEditor(text: $secretKey)
-                            .font(.system(size: 12, design: .monospaced))
-                            .scrollContentBackground(.hidden)
-                            .padding(8)
-                            .onChange(of: secretKey) {
-                                generateHash()
-                            }
+                        UndoableTextEditor(text: $secretKey) { _ in
+                            generateHash()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         
                         if secretKey.isEmpty {
                             Text("Enter secret key for HMAC...")
@@ -205,24 +202,20 @@ struct HashGeneratorView: View {
                 .padding(.horizontal, 16)
                 
                 ZStack(alignment: .topLeading) {
-                    TextEditor(text: $inputText)
-                        .font(.system(size: 12, design: .monospaced))
-                        .scrollContentBackground(.hidden)
-                        .padding(12)
-                        .focused($isInputFocused)
-                        .disabled(selectedFileURL != nil)
-                        .onChange(of: inputText) {
-                            updateCharacterCount()
-                            if selectedFileURL == nil {
-                                generateHash()
-                            }
+                    UndoableTextEditor(text: $inputText) { _ in
+                        updateCharacterCount()
+                        if selectedFileURL == nil {
+                            generateHash()
                         }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .disabled(selectedFileURL != nil)
                     
                     if inputText.isEmpty && selectedFileURL == nil {
                         Text("Paste or type text to hash...")
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .allowsHitTesting(false)
                     }
                     

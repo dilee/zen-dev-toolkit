@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct JSONFormatterView: View {
     @State private var inputText = ""
@@ -48,27 +49,36 @@ struct JSONFormatterView: View {
                     .buttonStyle(.plain)
                     .foregroundColor(.accentColor)
                     .help("Paste from clipboard (⌘V)")
+                    
+                    Button(action: loadFromFile) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "doc.badge.plus")
+                                .font(.system(size: 11))
+                            Text("File")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
+                    .help("Load JSON from file")
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 
                 ZStack(alignment: .topLeading) {
-                    TextEditor(text: $inputText)
-                        .font(.system(size: 12, design: .monospaced))
-                        .scrollContentBackground(.hidden)
-                        .padding(12)
-                        .onChange(of: inputText) {
-                            updateCharacterCount()
-                            if !inputText.isEmpty {
-                                validateJSON()
-                            }
+                    UndoableTextEditor(text: $inputText) { newText in
+                        updateCharacterCount()
+                        if !newText.isEmpty {
+                            validateJSON()
                         }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     if inputText.isEmpty {
                         Text("Paste or type JSON here...")
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .allowsHitTesting(false)
                     }
                 }
@@ -210,19 +220,15 @@ struct JSONFormatterView: View {
                 .padding(.top, 12)
                 
                 ZStack(alignment: .topLeading) {
-                    ScrollView {
-                        Text(outputText)
-                            .font(.system(size: 12, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .textSelection(.enabled)
-                    }
+                    UndoableTextEditor(text: $outputText)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     if outputText.isEmpty {
                         Text("Formatted JSON will appear here...")
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .allowsHitTesting(false)
                     }
                 }
                 .background(
@@ -339,6 +345,30 @@ struct JSONFormatterView: View {
         if let string = pasteboard.string(forType: .string) {
             inputText = string
             updateCharacterCount()
+        }
+    }
+    
+    private func loadFromFile() {
+        let openPanel = NSOpenPanel()
+        openPanel.title = "Choose a JSON file"
+        openPanel.allowsMultipleSelection = false
+        openPanel.canChooseDirectories = false
+        openPanel.canCreateDirectories = false
+        openPanel.canChooseFiles = true
+        openPanel.allowedContentTypes = [.json, .text, .plainText]
+        
+        openPanel.begin { response in
+            if response == .OK, let url = openPanel.url {
+                do {
+                    let content = try String(contentsOf: url, encoding: .utf8)
+                    inputText = content
+                    updateCharacterCount()
+                    validateJSON()
+                } catch {
+                    errorMessage = "Unable to read file: \(error.localizedDescription)"
+                    isValid = false
+                }
+            }
         }
     }
     

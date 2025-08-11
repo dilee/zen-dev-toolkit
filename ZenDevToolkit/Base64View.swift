@@ -213,20 +213,17 @@ struct Base64View: View {
                 .padding(.horizontal, 16)
                 
                 ZStack(alignment: .topLeading) {
-                    TextEditor(text: $inputText)
-                        .font(.system(size: 12, design: .monospaced))
-                        .scrollContentBackground(.hidden)
-                        .padding(12)
-                        .disabled(isProcessing)
-                        .onChange(of: inputText) {
-                            updateCharacterCount()
-                            if !inputText.isEmpty && fileInfo == nil {
-                                processBase64()
-                            } else if inputText.isEmpty {
-                                outputText = ""
-                                outputCharCount = 0
-                            }
+                    UndoableTextEditor(text: $inputText) { newText in
+                        updateCharacterCount()
+                        if !newText.isEmpty && fileInfo == nil {
+                            processBase64()
+                        } else if newText.isEmpty {
+                            outputText = ""
+                            outputCharCount = 0
                         }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .disabled(isProcessing)
                     
                     if inputText.isEmpty && !isDragging {
                         VStack(spacing: 12) {
@@ -428,13 +425,8 @@ struct Base64View: View {
                 .padding(.top, 12)
                 
                 ZStack(alignment: .topLeading) {
-                    ScrollView {
-                        Text(outputText)
-                            .font(.system(size: 12, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .textSelection(.enabled)
-                    }
+                    UndoableTextEditor(text: $outputText)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     if outputText.isEmpty {
                         Text(mode == .encode ? 
@@ -442,7 +434,8 @@ struct Base64View: View {
                              "Decoded text will appear here...")
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                            .padding(20)
+                            .allowsHitTesting(false)
                     }
                 }
                 .background(

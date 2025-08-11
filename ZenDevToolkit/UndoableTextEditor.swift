@@ -29,15 +29,26 @@ struct UndoableTextEditor: NSViewRepresentable {
         textView.textColor = .labelColor
         textView.string = text
         
+        // Make sure text view is editable
+        textView.isEditable = true
+        textView.isSelectable = true
+        
         // Enable undo/redo
         textView.allowsUndo = true
         
-        // Set up the scroll view
+        // Add padding to the text view
+        textView.textContainerInset = NSSize(width: 8, height: 8)
+        
+        // Set up the scroll view with improved appearance
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
+        scrollView.autohidesScrollers = true  // Auto-hide for cleaner look
         scrollView.backgroundColor = .clear
         scrollView.drawsBackground = false
+        
+        // Use overlay style for modern, less intrusive scrollbars
+        scrollView.scrollerStyle = .overlay
+        scrollView.scrollerKnobStyle = .light  // Light knob for better visibility in dark mode
         
         return scrollView
     }

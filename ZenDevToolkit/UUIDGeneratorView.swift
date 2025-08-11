@@ -211,6 +211,7 @@ struct UUIDGeneratorView: View {
                             }
                         }
                     }
+                    .padding(.vertical, 8)  // Add padding to top and bottom of the VStack
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 10)
