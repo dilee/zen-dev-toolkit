@@ -7,39 +7,50 @@ A lightweight macOS menu bar application that provides developers with quick acc
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.0--beta.3-yellow)
+![Version](https://img.shields.io/badge/version-1.0.0--beta.7-yellow)
 
 ## 🚀 Features
 
-### Currently Implemented
-- **JSON Formatter & Validator** ✅
+### Currently Implemented ✅
+
+- **JSON Formatter & Validator**
   - Format/beautify JSON with proper indentation
   - Minify JSON (remove whitespace)
   - Validate JSON syntax with clear error messages
   - Real-time validation as you type
+  - File upload support for JSON files
   - Copy/paste integration with system clipboard
   - Keyboard shortcuts (⌘+Return to format)
 
-### Coming Soon
-- **Base64 Encoder/Decoder** 
-  - Encode text to Base64
-  - Decode Base64 to readable text
-  - Support for file processing
+- **Base64 Encoder/Decoder**
+  - Encode text to Base64 format
+  - Decode Base64 strings to readable text
+  - Bidirectional conversion with validation
+  - Copy/paste integration
 
 - **URL Encoder/Decoder**
   - Encode URLs with proper percent-encoding
   - Decode URL-encoded strings
   - Handle special characters and query parameters
+  - Support for complex URL structures
 
 - **Hash Generator**
   - Generate MD5, SHA1, SHA256 hashes
-  - Support for text and file input
-  - One-click copy to clipboard
+  - Support for text input with real-time generation
+  - One-click copy to clipboard for each hash type
+  - Multiple hash algorithms simultaneously
 
 - **UUID Generator**
-  - Generate Version 4 UUIDs
-  - Multiple format options (with/without hyphens)
-  - Bulk generation capability
+  - Generate Version 4 UUIDs instantly
+  - Multiple format options (with/without hyphens, uppercase/lowercase)
+  - Bulk generation with customizable count
+  - Quick copy individual or all UUIDs
+
+### Coming Soon
+- **Regex Tester & Matcher**
+- **Color Converter** (hex, RGB, HSL)
+- **Timestamp Converter**
+- **QR Code Generator**
 
 ## 📋 Requirements
 
@@ -53,8 +64,11 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 #### First-time Installation
 ```bash
-brew update  # Ensures you get the latest version
-brew install --cask dilee/tap/zen-dev-toolkit
+# Add the tap (one-time setup)
+brew tap dilee/tap
+
+# Install ZenDevToolkit
+brew install --cask zen-dev-toolkit
 ```
 
 #### Updating to Latest Version
@@ -63,12 +77,10 @@ brew update  # Updates tap information
 brew upgrade --cask zen-dev-toolkit
 ```
 
-#### Alternative Installation Method
+#### Quick Installation (Single Command)
 ```bash
-# If you prefer to tap first
-brew tap dilee/tap
-brew update
-brew install --cask zen-dev-toolkit
+# Install directly without tapping first
+brew install --cask dilee/tap/zen-dev-toolkit
 ```
 
 ### Direct Download
@@ -76,7 +88,7 @@ brew install --cask zen-dev-toolkit
 1. Download the latest release from the [Releases page](https://github.com/dilee/zen-dev-toolkit/releases)
 2. Unzip the downloaded file
 3. Move `ZenDevToolkit.app` to your Applications folder
-4. **First launch**: Just double-click to open (fully signed and notarized since beta.3)
+4. **First launch**: Just double-click to open (fully signed and notarized)
 
 ### Building from Source
 
@@ -119,7 +131,7 @@ brew install --cask zen-dev-toolkit
 - **Resizable Window**: Adjust the popover size (320×400 to 600×800)
 - **Fast & Lightweight**: Native SwiftUI app with instant response times
 - **Privacy-Focused**: All processing happens locally, no data sent to servers
-- **Menu Bar Only**: Runs quietly in menu bar without cluttering your Dock
+- **Pure Menu Bar App**: Runs exclusively in menu bar, won't appear in Dock for clean desktop experience
 
 ## 🏗️ Project Structure
 
@@ -179,7 +191,7 @@ brew install --cask dilee/tap/zen-dev-toolkit
 
 ### App Won't Open?
 - **macOS 14.0+ required**: Check your macOS version in Apple Menu > About This Mac
-- **Security warning**: Should not appear in beta.3+ (fully notarized)
+- **Security warning**: Should not appear (app is fully signed and notarized)
 - **Menu bar full**: Look for the 📦 icon, might be hidden in overflow menu
 
 ## 📝 License
