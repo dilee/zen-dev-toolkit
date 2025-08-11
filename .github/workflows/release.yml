@@ -21,28 +21,136 @@ jobs:
       with:
         xcode-version: latest-stable
     
-    - name: Build Release
+    - name: Import Code Signing Certificate
+      env:
+        DEVELOPER_ID_APPLICATION_P12: ${{ secrets.DEVELOPER_ID_APPLICATION_P12 }}
+        DEVELOPER_ID_APPLICATION_PASSWORD: ${{ secrets.DEVELOPER_ID_APPLICATION_PASSWORD }}
       run: |
+        # Create temporary keychain
+        KEYCHAIN_NAME="build.keychain"
+        KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+        
+        security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+        security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+        
+        # Import certificate
+        echo "$DEVELOPER_ID_APPLICATION_P12" | base64 --decode > certificate.p12
+        security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$DEVELOPER_ID_APPLICATION_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+        
+        # Set key partition list
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+        
+        # Add to search list
+        security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
+        
+        # Clean up
+        rm certificate.p12
+    
+    - name: Build and Sign Release
+      run: |
+        # Clean previous builds
+        rm -rf build
+        mkdir -p build
+        
+        # Build archive with signing
         xcodebuild -scheme ZenDevToolkit \
           -configuration Release \
-          -derivedDataPath ./build \
-          CODE_SIGN_IDENTITY="-" \
-          clean build
+          -archivePath build/ZenDevToolkit.xcarchive \
+          archive
+        
+        # Export signed app
+        xcodebuild -exportArchive \
+          -archivePath build/ZenDevToolkit.xcarchive \
+          -exportPath build/export \
+          -exportOptionsPlist scripts/ExportOptions-Distribution.plist
     
-    - name: Create App Bundle
+    - name: Verify Code Signature
       run: |
-        mkdir -p release
-        cp -R ./build/Build/Products/Release/ZenDevToolkit.app ./release/
-        cd release
-        zip -r -q ../ZenDevToolkit.zip ZenDevToolkit.app
-        cd ..
+        echo "🔍 Verifying code signature..."
+        codesign --verify --verbose=2 "build/export/ZenDevToolkit.app"
+        codesign -dv --verbose=4 "build/export/ZenDevToolkit.app"
+        
+        echo "🔍 Checking signing identity..."
+        codesign -dv "build/export/ZenDevToolkit.app" 2>&1 | grep "Authority"
+    
+    - name: Create ZIP for Notarization
+      run: |
+        cd build/export
+        zip -r -q "../../ZenDevToolkit.zip" ZenDevToolkit.app
+        cd ../..
+    
+    - name: Notarize App
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      run: |
+        echo "📤 Submitting for notarization..."
+        
+        # Submit for notarization
+        SUBMISSION_ID=$(xcrun notarytool submit ZenDevToolkit.zip \
+          --apple-id "$APPLE_ID" \
+          --password "$APPLE_APP_PASSWORD" \
+          --team-id "3Z86BP8YAG" \
+          --output-format json | jq -r '.id')
+        
+        if [ "$SUBMISSION_ID" == "null" ] || [ -z "$SUBMISSION_ID" ]; then
+          echo "❌ Notarization submission failed"
+          exit 1
+        fi
+        
+        echo "🔄 Submission ID: $SUBMISSION_ID"
+        echo "⏳ Waiting for notarization result..."
+        
+        # Wait for result
+        xcrun notarytool wait "$SUBMISSION_ID" \
+          --apple-id "$APPLE_ID" \
+          --password "$APPLE_APP_PASSWORD" \
+          --team-id "3Z86BP8YAG"
+        
+        # Check status
+        STATUS=$(xcrun notarytool info "$SUBMISSION_ID" \
+          --apple-id "$APPLE_ID" \
+          --password "$APPLE_APP_PASSWORD" \
+          --team-id "3Z86BP8YAG" \
+          --output-format json | jq -r '.status')
+        
+        if [ "$STATUS" != "Accepted" ]; then
+          echo "❌ Notarization failed with status: $STATUS"
+          
+          # Get detailed log
+          echo "📝 Getting detailed log..."
+          xcrun notarytool log "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "3Z86BP8YAG"
+          
+          exit 1
+        fi
+        
+        echo "✅ Notarization successful!"
+    
+    - name: Staple Notarization
+      run: |
+        echo "📎 Stapling notarization to app..."
+        xcrun stapler staple "build/export/ZenDevToolkit.app"
+        
+        echo "🔍 Verifying stapled app..."
+        xcrun stapler validate "build/export/ZenDevToolkit.app"
+        spctl --assess --verbose=2 "build/export/ZenDevToolkit.app"
+        
+        # Create final ZIP with stapled app
+        cd build/export
+        zip -r -q "../../ZenDevToolkit-signed.zip" ZenDevToolkit.app
+        cd ../..
+        mv ZenDevToolkit-signed.zip ZenDevToolkit.zip
     
     - name: Calculate SHA256
       id: sha256
       run: |
         SHA256=$(shasum -a 256 ZenDevToolkit.zip | awk '{print $1}')
         echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-        echo "SHA256: $SHA256"
+        echo "✅ SHA256: $SHA256"
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -61,26 +169,31 @@ jobs:
           ### Direct Download
           Download the zip file below and extract ZenDevToolkit.app to your Applications folder.
           
-          **Note**: This is an unsigned beta release. To open the app for the first time:
-          1. Right-click the app and select "Open"
-          2. Click "Open" in the security dialog
+          **✅ This release is fully signed and notarized** - no security warnings when opening!
           
           ## Changes
           See [CHANGELOG.md](https://github.com/dilee/zen-dev-toolkit/blob/main/CHANGELOG.md) for details.
           
           ---
-          SHA256: `${{ steps.sha256.outputs.sha256 }}`
+          **SHA256**: `${{ steps.sha256.outputs.sha256 }}`
+          
+          **Code Signing**: Developer ID Application: Dileesha Rajapakse (3Z86BP8YAG)  
+          **Notarization**: ✅ Notarized by Apple
         draft: false
-        prerelease: false
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') || contains(github.ref, 'rc') }}
         files: ZenDevToolkit.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Update Homebrew Tap
+      env:
+        TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
       run: |
         # Extract version from tag
         VERSION=${GITHUB_REF#refs/tags/v}
         SHA256=${{ steps.sha256.outputs.sha256 }}
+        
+        echo "📝 Updating Homebrew tap for version $VERSION..."
         
         # Create cask file content
         cat > zen-dev-toolkit.rb << EOF
@@ -96,7 +209,7 @@ jobs:
           app "ZenDevToolkit.app"
         
           zap trash: [
-            "~/Library/Preferences/com.dilee.ZenDevToolkit.plist",
+            "~/Library/Preferences/com.luminaxa.ZenDevToolkit.plist",
             "~/Library/Application Support/ZenDevToolkit",
           ]
         end
@@ -110,5 +223,16 @@ jobs:
         mv zen-dev-toolkit.rb homebrew-tap/Casks/
         cd homebrew-tap
         git add .
-        git commit -m "Update ZenDevToolkit to $VERSION"
-        git push https://${{ secrets.TAP_TOKEN }}@github.com/dilee/homebrew-tap.git
+        git commit -m "Update ZenDevToolkit to $VERSION (signed & notarized)"
+        git push https://$TAP_TOKEN@github.com/dilee/homebrew-tap.git
+        
+        echo "✅ Homebrew tap updated successfully!"
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        # Remove temporary keychain
+        security delete-keychain build.keychain || true
+        
+        # Clean up build artifacts (keep release ZIP)
+        rm -rf build/

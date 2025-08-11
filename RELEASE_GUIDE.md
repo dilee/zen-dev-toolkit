@@ -2,12 +2,17 @@
 
 ## Setup (One-time)
 
-### 1. Set up GitHub Token for Homebrew Tap Updates
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Generate new token with `repo` scope
-3. Add as repository secret named `TAP_TOKEN` in zen-dev-toolkit repo settings
+### 1. Configure GitHub Secrets for Automated Code Signing
+Follow the detailed guide: [`scripts/setup-github-secrets.md`](scripts/setup-github-secrets.md)
 
-### 2. Prepare Homebrew Tap Repository
+Required secrets:
+- `APPLE_ID`: Your Apple Developer email (dilee.dev@gmail.com)
+- `APPLE_APP_PASSWORD`: App-specific password from Apple ID
+- `DEVELOPER_ID_APPLICATION_P12`: Base64-encoded certificate (.p12)
+- `DEVELOPER_ID_APPLICATION_PASSWORD`: Password for the .p12 file
+- `TAP_TOKEN`: GitHub token for homebrew tap updates
+
+### 2. Homebrew Tap Repository
 Your `homebrew-tap` repository should have this structure:
 ```
 homebrew-tap/
@@ -16,9 +21,9 @@ homebrew-tap/
     └── zen-dev-toolkit.rb
 ```
 
-## Release Process
+## Automated Release Process
 
-### For Beta Releases (e.g., v1.0.0-beta.1)
+### For Any Release (Beta, RC, or Stable)
 
 1. **Update version references**:
    - Update version badge in README.md
@@ -27,33 +32,33 @@ homebrew-tap/
 2. **Commit changes**:
    ```bash
    git add .
-   git commit -m "chore: prepare v1.0.0-beta.1 release"
+   git commit -m "chore: prepare v1.0.0 release"
    git push
    ```
 
-3. **Build and test locally**:
+3. **Create and push tag** (triggers full automation):
    ```bash
-   ./scripts/release.sh 1.0.0-beta.1
-   # Test the generated app
-   open releases/ZenDevToolkit-v1.0.0-beta.1.zip
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   git push origin v1.0.0
    ```
 
-4. **Create and push tag**:
-   ```bash
-   git tag -a v1.0.0-beta.1 -m "Beta release v1.0.0-beta.1"
-   git push origin v1.0.0-beta.1
-   ```
+4. **GitHub Actions automatically handles**:
+   - ✅ **Code Signing**: Imports Developer ID certificate
+   - ✅ **Build**: Creates release archive with Xcode
+   - ✅ **Notarization**: Submits to Apple and waits for approval
+   - ✅ **Stapling**: Attaches notarization ticket to app
+   - ✅ **Verification**: Confirms app is trusted by macOS
+   - ✅ **GitHub Release**: Creates release with signed ZIP
+   - ✅ **Homebrew Update**: Updates tap with new version and SHA256
 
-5. **GitHub Actions will automatically**:
-   - Build the app
-   - Create GitHub release
-   - Upload the zip file
-   - Update your homebrew-tap (if TAP_TOKEN is set)
+5. **Result**: Fully trusted app ready for distribution!
 
-6. **If manual update needed for homebrew-tap**:
-   - Copy the cask formula from the release script output
-   - Update `homebrew-tap/Casks/zen-dev-toolkit.rb`
-   - Commit and push to homebrew-tap
+### Manual Testing (Optional)
+```bash
+# Build and test locally before tagging
+./scripts/build-release.sh
+open build/export/ZenDevToolkit.app
+```
 
 ### For Stable Releases (e.g., v1.0.0)
 
