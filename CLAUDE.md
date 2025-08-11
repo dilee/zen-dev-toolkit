@@ -41,6 +41,47 @@ xcodebuild -scheme ZenDevToolkit -configuration Release
 xcodebuild -scheme ZenDevToolkit clean
 ```
 
+### Signed Release Build
+```bash
+# Build, sign, and prepare for distribution
+./scripts/build-release.sh
+
+# This script:
+# - Creates a signed archive
+# - Exports with Developer ID certificate
+# - Verifies code signature
+# - Creates ZIP for notarization
+# - Optionally submits for notarization (if credentials are set)
+```
+
+### Code Signing & Notarization
+
+The app is configured for trusted distribution with:
+- **Team ID**: 3Z86BP8YAG (Dileesha Rajapakse)
+- **Bundle ID**: com.luminaxa.ZenDevToolkit
+- **Code Signing**: Automatic with Developer ID Application certificate
+- **Hardened Runtime**: Enabled
+- **Sandboxing**: Enabled with file access permissions
+
+#### Manual Notarization
+```bash
+# Set credentials (required for notarization)
+export APPLE_ID="dilee.dev@gmail.com"
+export APPLE_APP_PASSWORD="your-app-specific-password"
+
+# Notarize the built app
+./scripts/notarize.sh build/export-distribution/ZenDevToolkit.app
+
+# Or notarize a ZIP file
+./scripts/notarize.sh build/ZenDevToolkit.zip
+```
+
+#### Creating App-Specific Password
+1. Go to https://appleid.apple.com/ (sign in with dilee.dev@gmail.com)
+2. Navigate to Security section
+3. Generate app-specific password for "ZenDevToolkit Notarization"
+4. Use this password as `APPLE_APP_PASSWORD`
+
 ### Testing
 ```bash
 # Run all tests
