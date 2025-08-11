@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.3] - 2025-01-11
+
+### Added
+- Full code signing with Developer ID Application certificate
+- Automated notarization in CI/CD pipeline
+- Hardened runtime for enhanced security
+- App sandboxing with appropriate entitlements
+
+### Fixed
+- CI/CD build process now properly uses Developer ID certificates
+- Code signing verification in GitHub Actions workflow
+- Export options configuration for manual signing
+
+### Changed
+- Switched from ad-hoc signing to Developer ID signing
+- App is now fully trusted by macOS Gatekeeper (no security warnings)
+- Improved release automation with proper certificate handling
+
 ## [1.0.0-beta.2] - 2025-01-10
 
 ### Added
@@ -63,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.2...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.3...HEAD
+[1.0.0-beta.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.2...v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.1...v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/dilee/zen-dev-toolkit/releases/tag/v1.0.0-beta.1
