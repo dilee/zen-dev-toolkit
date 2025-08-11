@@ -7,7 +7,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.0--beta.2-yellow)
+![Version](https://img.shields.io/badge/version-1.0.0--beta.3-yellow)
 
 ## 🚀 Features
 
@@ -51,15 +51,24 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 ### Via Homebrew (Recommended)
 
-Install using Homebrew Cask:
+#### First-time Installation
 ```bash
-brew tap dilee/tap
-brew install --cask zen-dev-toolkit
+brew update  # Ensures you get the latest version
+brew install --cask dilee/tap/zen-dev-toolkit
 ```
 
-To update to the latest version:
+#### Updating to Latest Version
 ```bash
+brew update  # Updates tap information
 brew upgrade --cask zen-dev-toolkit
+```
+
+#### Alternative Installation Method
+```bash
+# If you prefer to tap first
+brew tap dilee/tap
+brew update
+brew install --cask zen-dev-toolkit
 ```
 
 ### Direct Download
@@ -67,7 +76,7 @@ brew upgrade --cask zen-dev-toolkit
 1. Download the latest release from the [Releases page](https://github.com/dilee/zen-dev-toolkit/releases)
 2. Unzip the downloaded file
 3. Move `ZenDevToolkit.app` to your Applications folder
-4. **First launch**: Right-click the app and select "Open" (required for unsigned beta releases)
+4. **First launch**: Just double-click to open (fully signed and notarized since beta.3)
 
 ### Building from Source
 
@@ -144,6 +153,34 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 Run tests in Xcode:
 - **Unit Tests**: ⌘+U
 - **UI Tests**: Select `ZenDevToolkitUITests` scheme and run
+
+## 🔧 Troubleshooting
+
+### Homebrew Installation Issues
+
+**Getting an old version?**
+```bash
+# Force update the tap
+brew update --force
+brew upgrade --cask zen-dev-toolkit
+```
+
+**Want to check installed version?**
+```bash
+brew list --cask --versions zen-dev-toolkit
+```
+
+**Complete reinstall:**
+```bash
+brew uninstall --cask zen-dev-toolkit
+brew update
+brew install --cask dilee/tap/zen-dev-toolkit
+```
+
+### App Won't Open?
+- **macOS 14.0+ required**: Check your macOS version in Apple Menu > About This Mac
+- **Security warning**: Should not appear in beta.3+ (fully notarized)
+- **Menu bar full**: Look for the 📦 icon, might be hidden in overflow menu
 
 ## 📝 License
 
