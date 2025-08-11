@@ -405,12 +405,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ZenDevToolkit;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Made with ❤️ by Dileesha R. • github.com/dilee";
+				INFOPLIST_KEY_CFBundleGetInfoString = "A lightweight developer toolkit for macOS";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -435,12 +437,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ZenDevToolkit;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Made with ❤️ by Dileesha R. • github.com/dilee";
+				INFOPLIST_KEY_CFBundleGetInfoString = "A lightweight developer toolkit for macOS";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -458,7 +462,7 @@
 				DEVELOPMENT_TEAM = 3Z86BP8YAG;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -476,7 +480,7 @@
 				DEVELOPMENT_TEAM = 3Z86BP8YAG;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -492,7 +496,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3Z86BP8YAG;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkitUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -508,7 +512,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3Z86BP8YAG;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = "1.0.0-beta.5";
+				MARKETING_VERSION = "1.0.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = com.luminaxa.ZenDevToolkitUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
