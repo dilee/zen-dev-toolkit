@@ -62,25 +62,21 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 ### Via Homebrew (Recommended)
 
-#### First-time Installation
+#### One-Line Installation
 ```bash
-# Add the tap (one-time setup)
-brew tap dilee/tap
-
-# Install ZenDevToolkit
-brew install --cask zen-dev-toolkit
+brew install --cask dilee/tap/zen-dev-toolkit
 ```
 
 #### Updating to Latest Version
 ```bash
-brew update  # Updates tap information
-brew upgrade --cask zen-dev-toolkit
+brew update && brew upgrade --cask zen-dev-toolkit
 ```
 
-#### Quick Installation (Single Command)
+#### Alternative: Tap First Method
 ```bash
-# Install directly without tapping first
-brew install --cask dilee/tap/zen-dev-toolkit
+# If you prefer to tap the repository first
+brew tap dilee/tap
+brew install --cask zen-dev-toolkit
 ```
 
 ### Direct Download
@@ -185,7 +181,6 @@ brew list --cask --versions zen-dev-toolkit
 **Complete reinstall:**
 ```bash
 brew uninstall --cask zen-dev-toolkit
-brew update
 brew install --cask dilee/tap/zen-dev-toolkit
 ```
 
