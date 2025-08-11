@@ -13,8 +13,10 @@
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.0.0-beta.5</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Dileesha Rajapakse. All rights reserved.</string>
+    <string>Made with ❤️ by Dileesha R. • github.com/dilee</string>
+    <key>CFBundleGetInfoString</key>
+    <string>A lightweight developer toolkit for macOS</string>
 </dict>
 </plist>

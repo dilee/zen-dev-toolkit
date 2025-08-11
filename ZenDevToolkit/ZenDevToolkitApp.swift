@@ -118,6 +118,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     
     @objc private func showAbout() {
+        // Activate the app to ensure it's in the foreground
+        NSApp.activate(ignoringOtherApps: true)
+        
+        // Show the standard About panel
         NSApp.orderFrontStandardAboutPanel(nil)
     }
     
