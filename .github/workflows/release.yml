@@ -35,21 +35,21 @@ jobs:
         security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
         
-        # Import certificate
+        # Import certificate with proper access controls
         echo "📥 Importing Developer ID certificate..."
         echo "$DEVELOPER_ID_APPLICATION_P12" | base64 --decode > certificate.p12
-        security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$DEVELOPER_ID_APPLICATION_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
+        security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$DEVELOPER_ID_APPLICATION_PASSWORD" -A
         
-        # Set key partition list
+        # Set key partition list to allow access without prompting
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
         
-        # Add to search list and set as default
+        # Add keychain to search list (but don't set as default to avoid conflicts)
         security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
-        security default-keychain -s "$KEYCHAIN_NAME"
         
         # Verify certificate import
         echo "🔍 Verifying certificate import..."
         security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+        security find-identity -v -p codesigning
         
         # Clean up
         rm certificate.p12
