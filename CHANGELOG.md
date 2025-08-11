@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.7] - 2025-08-11
+
+### Fixed
+- **Dock Visibility Issue**: App now properly hides from dock and runs as pure menu bar application
+  - Fixed LSUIElement configuration in Xcode project settings
+  - Resolved Info.plist generation issue that was ignoring source Info.plist
+  - App no longer appears in dock, maintaining clean menu bar-only experience
+  - Updated version numbering to 1.0.0-beta.6 in built app
+
 ## [1.0.0-beta.6] - 2025-08-11
 
 ### Improved
@@ -135,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.6...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.7...HEAD
+[1.0.0-beta.7]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.6...v1.0.0-beta.7
 [1.0.0-beta.6]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.5...v1.0.0-beta.6
 [1.0.0-beta.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.4...v1.0.0-beta.5
 [1.0.0-beta.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.3...v1.0.0-beta.4
