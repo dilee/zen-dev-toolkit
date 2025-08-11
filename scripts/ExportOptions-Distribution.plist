@@ -5,7 +5,7 @@
     <key>method</key>
     <string>developer-id</string>
     <key>signingStyle</key>
-    <string>automatic</string>
+    <string>manual</string>
     <key>teamID</key>
     <string>3Z86BP8YAG</string>
     <key>destination</key>

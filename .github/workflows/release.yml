@@ -64,13 +64,15 @@ jobs:
         echo "🔍 Available signing certificates:"
         security find-identity -v -p codesigning
         
-        # Build archive with automatic signing
-        echo "🏗️ Building archive with automatic signing..."
+        # Build archive with manual signing using Developer ID Application certificate
+        echo "🏗️ Building archive with Developer ID Application certificate..."
         xcodebuild -scheme ZenDevToolkit \
           -configuration Release \
           -archivePath build/ZenDevToolkit.xcarchive \
-          CODE_SIGN_STYLE=Automatic \
+          CODE_SIGN_STYLE=Manual \
+          CODE_SIGN_IDENTITY="Developer ID Application: Dileesha Rajapakse (3Z86BP8YAG)" \
           DEVELOPMENT_TEAM="3Z86BP8YAG" \
+          PROVISIONING_PROFILE_SPECIFIER="" \
           archive
         
         # Export signed app
