@@ -55,6 +55,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 ### Coming Soon
 - **Regex Tester & Matcher**
 - **Color Converter** (hex, RGB, HSL)
+- **Timestamp Converter**
 - **QR Code Generator**
 
 ## 📋 Requirements
