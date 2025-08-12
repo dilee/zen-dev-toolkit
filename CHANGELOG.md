@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-08-13
+
+### Fixed
+- **Update Notification Banner**: Completely redesigned update notification system for better UX
+  - Moved banner to bottom of window to prevent UI overlap
+  - Window now dynamically expands by 50px when update is available
+  - Added smooth animations for banner appearance/dismissal
+  - Fixed issue where banner overlapped with tool selector buttons
+  - Banner now uses semi-transparent background (75% opacity) for modern look
+  - All tool buttons remain fully accessible when banner is shown
+
+### Improved
+- **Update Experience**: 
+  - Banner dismissal now smoothly resizes window back to original size
+  - Connected banner to actual UpdateChecker logic
+  - Display real version numbers from update checker
+  - Better visual hierarchy with update info at bottom
+
 ## [1.0.1] - 2025-08-13
 
 ### Added
@@ -254,7 +272,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...v1.0.0
 [1.0.0-beta.11]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.10...v1.0.0-beta.11
