@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-08-12
+
+### Improved
+- **Timestamp Converter - Timezone Selection**:
+  - Added comprehensive global timezone coverage (60+ timezones)
+  - Timezones now sorted by UTC offset for easier navigation
+  - Display UTC offset (e.g., UTC+05:30) for each timezone
+  - Current timezone highlighted at top with checkmark indicator
+  - Improved timezone display format with city and country information
+  - Support for special UTC offsets including half-hour and quarter-hour zones
+
 ## [1.0.2] - 2025-08-13
 
 ### Fixed
@@ -272,7 +283,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...v1.0.0

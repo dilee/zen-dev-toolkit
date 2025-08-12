@@ -11,9 +11,9 @@
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleVersion</key>
-    <string>102</string>
+    <string>103</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.2</string>
+    <string>1.0.3</string>
     <key>NSHumanReadableCopyright</key>
     <string>Made with ❤️ by Dileesha R. • github.com/dilee</string>
     <key>CFBundleGetInfoString</key>
