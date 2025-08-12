@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-08-13
+
+### Added
+- **Auto Update Checker**: Lightweight update notification system
+  - Automatic check for updates on app launch (once per 24 hours)
+  - Manual update check via right-click menu
+  - Non-intrusive update notification banner
+  - Support for both Homebrew and direct download distribution
+  - Version comparison with pre-release support
+  - Skip specific versions option
+  - Network client entitlement for GitHub API access
+
+### Changed
+- **Stable Release**: Graduating from beta to stable version 1.0.0
+- All core features are now production-ready
+- Improved error handling and user experience across all tools
+
+### Summary
+ZenDevToolkit 1.0.0 is the first stable release, featuring 7 essential developer tools:
+- JSON Formatter with JSONPath queries
+- Base64 Encoder/Decoder
+- URL Encoder/Decoder  
+- Hash Generator
+- UUID Generator
+- Timestamp Converter
+- JWT Token Tool
+
+The app is lightweight, fast, and designed for developers who need quick access to common utilities without opening a browser.
+
 ## [1.0.0-beta.11] - 2025-08-12
 
 ### Added
@@ -207,7 +236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...v1.0.0
 [1.0.0-beta.11]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.10...v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.9...v1.0.0-beta.10
 [1.0.0-beta.8]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.7...v1.0.0-beta.8

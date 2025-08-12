@@ -37,11 +37,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var statusItem: NSStatusItem?
     private var window: NSPanel?
     private var eventMonitor: Any?
+    private let updateChecker = UpdateChecker.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
         setupWindow()
         setupEventMonitor()
+        
+        // Check for updates in the background
+        Task {
+            await updateChecker.checkForUpdates()
+        }
     }
     
     private func setupMenuBar() {
@@ -106,6 +112,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         aboutItem.target = self
         menu.addItem(aboutItem)
         
+        let updateItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+        
         menu.addItem(NSMenuItem.separator())
         
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
@@ -123,6 +133,53 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         // Show the standard About panel
         NSApp.orderFrontStandardAboutPanel(nil)
+    }
+    
+    @objc private func checkForUpdates() {
+        Task {
+            await updateChecker.checkForUpdates(force: true)
+            
+            await MainActor.run {
+                if updateChecker.updateAvailable {
+                    showUpdateAlert()
+                } else {
+                    showNoUpdateAlert()
+                }
+            }
+        }
+    }
+    
+    private func showUpdateAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Update Available"
+        alert.informativeText = "ZenDevToolkit \(updateChecker.latestVersion) is available. You have \(updateChecker.currentVersion)."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "View Release")
+        alert.addButton(withTitle: "Skip This Version")
+        alert.addButton(withTitle: "Remind Me Later")
+        
+        NSApp.activate(ignoringOtherApps: true)
+        
+        let response = alert.runModal()
+        switch response {
+        case .alertFirstButtonReturn:
+            updateChecker.openReleaseNotes()
+        case .alertSecondButtonReturn:
+            updateChecker.skipThisVersion()
+        default:
+            break
+        }
+    }
+    
+    private func showNoUpdateAlert() {
+        let alert = NSAlert()
+        alert.messageText = "You're up to date!"
+        alert.informativeText = "ZenDevToolkit \(updateChecker.currentVersion) is the latest version."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
     
     @objc private func quitApp() {

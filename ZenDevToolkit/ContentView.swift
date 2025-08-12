@@ -12,6 +12,9 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Update notification banner
+            UpdateNotificationView()
+            
             // FIXED header that NEVER moves
             HStack(spacing: 6) {
                 CompactToolButton(icon: "curlybraces", title: "JSON", tag: "JSON", selection: $selectedTool)
