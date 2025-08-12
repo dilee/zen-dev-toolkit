@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-08-12
+
+### Fixed
+- **Update Banner**: Fixed incorrect GitHub URL in update notification banner
+  - "View" button now correctly links to the specific release page
+  - Uses the actual release URL from GitHub API (e.g., `/releases/tag/v1.0.4`)
+  - Provides fallback to general releases page if specific URL unavailable
+  - Consistent with update checker dialog behavior
+
 ## [1.0.3] - 2025-08-12
 
 ### Improved
@@ -283,7 +292,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...v1.0.1
