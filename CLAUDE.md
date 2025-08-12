@@ -174,6 +174,47 @@ To add a new tool:
 - Custom keyboard shortcuts
 - Bulk file processing
 
+## Release Process
+
+### Creating a New Release
+
+When preparing a new release, follow these steps:
+
+1. **Update Version Numbers** (3 places):
+   - `ZenDevToolkit/Info.plist`: Update both `CFBundleShortVersionString` (e.g., "1.0.1") and `CFBundleVersion` (e.g., "101")
+   - `ZenDevToolkit.xcodeproj/project.pbxproj`: Update `MARKETING_VERSION` (this overrides Info.plist!)
+     - Search for `MARKETING_VERSION = "x.x.x";` and update ALL occurrences (usually 6)
+   - `README.md`: Update the version badge
+
+2. **Update Documentation**:
+   - `CHANGELOG.md`: Add new version section with release notes
+   - Move items from `[Unreleased]` to the new version section
+   - Update the comparison links at the bottom
+
+3. **Commit Changes**:
+   ```bash
+   git add -A
+   git commit -m "feat: release version X.X.X"
+   ```
+
+4. **Create and Push Tag**:
+   ```bash
+   git tag -a vX.X.X -m "Release version X.X.X"
+   git push origin main
+   git push origin vX.X.X
+   ```
+
+5. **GitHub Actions will automatically**:
+   - Build and sign the app
+   - Create a GitHub release
+   - Upload the built artifacts
+
+### Important Notes
+- **MARKETING_VERSION in project.pbxproj overrides Info.plist** - Always update both!
+- Only create the tag after all version updates are committed
+- Use semantic versioning (MAJOR.MINOR.PATCH)
+- The CI/CD pipeline triggers on tags starting with 'v'
+
 ## Important Instructions
 
 ### Git Commit Rules
