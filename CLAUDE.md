@@ -118,6 +118,13 @@ open ZenDevToolkit.xcodeproj
    - Version 4 UUIDs
    - Multiple format options
 
+6. **Timestamp Converter** ✅ (Implemented)
+   - Convert Unix timestamps to human-readable dates
+   - Convert human dates to Unix timestamps
+   - Support for multiple timezones
+   - Multiple date format support
+   - Relative time display ("2 hours ago")
+
 ## Key Implementation Notes
 
 - The app uses SwiftUI for all UI components
@@ -153,7 +160,6 @@ To add a new tool:
 ### Future Enhancements (Post v1.0)
 - Regex tester and matcher
 - Color converter (hex, RGB, HSL)
-- Timestamp converter
 - QR code generator
 - Custom keyboard shortcuts
 - Bulk file processing
