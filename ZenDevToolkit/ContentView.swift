@@ -62,7 +62,7 @@ struct ContentView: View {
             
             // Update notification banner at the bottom
             if showUpdateBanner && updateChecker.updateAvailable {
-                UpdateBannerView(showBanner: $showUpdateBanner, latestVersion: updateChecker.latestVersion)
+                UpdateBannerView(showBanner: $showUpdateBanner, latestVersion: updateChecker.latestVersion, releaseURL: updateChecker.releaseURL)
                     .frame(height: 50)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -81,6 +81,7 @@ struct ContentView: View {
 struct UpdateBannerView: View {
     @Binding var showBanner: Bool
     let latestVersion: String
+    let releaseURL: String
     
     var body: some View {
         HStack {
@@ -100,7 +101,7 @@ struct UpdateBannerView: View {
             
             Button("View") {
                 // Open release notes for the specific version
-                if let url = URL(string: updateChecker.releaseURL), !updateChecker.releaseURL.isEmpty {
+                if let url = URL(string: releaseURL), !releaseURL.isEmpty {
                     NSWorkspace.shared.open(url)
                 } else {
                     // Fallback to releases page if no specific URL available
