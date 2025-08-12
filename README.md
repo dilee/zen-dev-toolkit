@@ -52,6 +52,15 @@ A lightweight macOS menu bar application that provides developers with quick acc
   - Bulk generation with customizable count
   - Quick copy individual or all UUIDs
 
+- **JWT Token Tool**
+  - Decode JWT tokens to view header, payload, and signature
+  - Generate new JWT tokens with custom claims
+  - Verify JWT signatures with secret keys
+  - Support for HS256, HS384, HS512 algorithms
+  - Human-readable claims display with expiration tracking
+  - JSON view for raw payload data
+  - Copy individual sections or entire tokens
+
 ### Coming Soon
 - **Regex Tester & Matcher**
 - **Color Converter** (hex, RGB, HSL)

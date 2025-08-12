@@ -20,6 +20,7 @@ struct ContentView: View {
                 CompactToolButton(icon: "number.square", title: "Hash", tag: "Hash", selection: $selectedTool)
                 CompactToolButton(icon: "key", title: "UUID", tag: "UUID", selection: $selectedTool)
                 CompactToolButton(icon: "calendar.badge.clock", title: "Time", tag: "Time", selection: $selectedTool)
+                CompactToolButton(icon: "person.badge.key", title: "JWT", tag: "JWT", selection: $selectedTool)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -42,6 +43,8 @@ struct ContentView: View {
                     UUIDGeneratorView()
                 case "Time":
                     TimestampConverterView()
+                case "JWT":
+                    JWTView()
                 default:
                     Text("Select a tool")
                 }
@@ -96,6 +99,7 @@ struct CompactToolButton: View {
 // HashGeneratorView is imported from its own file
 // UUIDGeneratorView is imported from its own file
 // TimestampConverterView is imported from its own file
+// JWTView is imported from its own file
 
 #Preview {
     ContentView()

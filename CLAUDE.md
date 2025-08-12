@@ -126,6 +126,15 @@ open ZenDevToolkit.xcodeproj
    - Multiple date format support
    - Relative time display ("2 hours ago")
 
+7. **JWT Token Tool** ✅ (Implemented)
+   - Decode JWT tokens with header, payload, and signature display
+   - Generate JWT tokens with custom claims
+   - Verify JWT signatures with secret key validation
+   - Support for HMAC algorithms (HS256, HS384, HS512)
+   - Human-readable claims display with expiration tracking
+   - Toggle between readable and JSON views for payload
+   - Base64URL encoding/decoding for JWT format compliance
+
 ## Key Implementation Notes
 
 - The app uses SwiftUI for all UI components

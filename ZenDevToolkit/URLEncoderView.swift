@@ -136,9 +136,11 @@ struct URLEncoderView: View {
                                     Text(currentEncodeMode.description)
                                         .font(.system(size: 8))
                                         .foregroundColor(.secondary)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.center)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
+                                .frame(height: 42)
                                 .padding(.horizontal, 8)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)

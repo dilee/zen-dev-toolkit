@@ -397,8 +397,8 @@ struct JSONFormatterView: View {
             // Focus the input field when view appears
             isInputFocused = true
         }
-        .onChange(of: selectedMode) { _ in
-            if selectedMode == "Query" && isQueryFocused == false {
+        .onChange(of: selectedMode) { _, newMode in
+            if newMode == "Query" && isQueryFocused == false {
                 // Focus query field when switching to query mode
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     isQueryFocused = true
