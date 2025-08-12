@@ -99,9 +99,14 @@ struct UpdateBannerView: View {
             Spacer()
             
             Button("View") {
-                // Open release notes
-                if let url = URL(string: "https://github.com/yourusername/ZenDevToolkit/releases") {
+                // Open release notes for the specific version
+                if let url = URL(string: updateChecker.releaseURL), !updateChecker.releaseURL.isEmpty {
                     NSWorkspace.shared.open(url)
+                } else {
+                    // Fallback to releases page if no specific URL available
+                    if let url = URL(string: "https://github.com/dilee/zen-dev-toolkit/releases") {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
             }
             .buttonStyle(.borderless)
