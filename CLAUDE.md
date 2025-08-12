@@ -25,6 +25,7 @@ ZenDevToolkit is a lightweight macOS menu bar application that provides develope
 
 Each tool is implemented as a separate SwiftUI view:
 - JSONFormatterView: Fully implemented with format/minify/validate functionality
+- TimestampConverterView: Fully implemented with Unix/human date conversion and timezone support
 - Base64View, URLEncoderView, HashGeneratorView, UUIDGeneratorView: Placeholder implementations
 
 ## Development Commands
