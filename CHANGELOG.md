@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.8] - 2025-08-12
+
+### Improved
+- **JSON Formatter**: Complete rewrite to preserve element order
+  - JSON objects now maintain their original key order during format/minify operations  
+  - Implemented custom tokenizer-based parser for robust handling of complex JSON structures
+  - Enhanced string literal processing with proper escape sequence support (quotes, backslashes, unicode)
+  - Maintains full JSONSerialization validation for error detection while preserving order
+  - Supports all JSON data types: nested objects, arrays, strings with special characters, numbers (including scientific notation), booleans, and null values
+  - Improved handling of edge cases that could break simpler string-based formatters
+
 ## [1.0.0-beta.7] - 2025-08-11
 
 ### Fixed
@@ -144,7 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.7...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.8...HEAD
+[1.0.0-beta.8]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.7...v1.0.0-beta.8
 [1.0.0-beta.7]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.6...v1.0.0-beta.7
 [1.0.0-beta.6]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.5...v1.0.0-beta.6
 [1.0.0-beta.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.4...v1.0.0-beta.5
