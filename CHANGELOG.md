@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.9] - 2025-08-12
+
+### Added
+- **JSONPath Query Support**: New tab-based interface for querying JSON data
+  - Switch between Format and Query modes with clean tab interface
+  - Custom JSONPath parser supporting common query patterns:
+    - Property access: `$.store.book[0].title`
+    - Recursive descent: `$..price`
+    - Array operations: indexing, slicing, wildcards
+    - Basic filter expressions: `$[?(@.price < 10)]`
+  - Quick-access example buttons for common patterns
+  - Real-time query execution with error feedback
+  - Copy query results to clipboard
+  - Maintains same 420x680px window size with zero UI clutter
+
+### Improved
+- **Button Interaction**: Enhanced click targets for all buttons
+  - Tab buttons now have proper 8pt spacing between them
+  - Entire button area is now clickable, not just text/icon
+  - Better user experience with larger hit targets
+
 ## [1.0.0-beta.8] - 2025-08-12
 
 ### Improved
