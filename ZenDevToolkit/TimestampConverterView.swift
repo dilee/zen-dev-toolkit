@@ -57,6 +57,9 @@ struct TimestampConverterView: View {
             TimeZone(identifier: "America/Vancouver")!,     // Vancouver
             TimeZone(identifier: "America/Sao_Paulo")!,     // Brazil
             TimeZone(identifier: "America/Mexico_City")!,   // Mexico
+            TimeZone(identifier: "America/Buenos_Aires")!,  // Argentina
+            TimeZone(identifier: "America/Bogota")!,        // Colombia
+            TimeZone(identifier: "America/Lima")!,          // Peru
             // Europe
             TimeZone(identifier: "Europe/London")!,         // GMT/BST
             TimeZone(identifier: "Europe/Paris")!,          // CET
@@ -66,7 +69,14 @@ struct TimestampConverterView: View {
             TimeZone(identifier: "Europe/Amsterdam")!,      // CET
             TimeZone(identifier: "Europe/Stockholm")!,      // CET
             TimeZone(identifier: "Europe/Moscow")!,         // MSK
-            // Asia-Pacific
+            TimeZone(identifier: "Europe/Athens")!,         // EET
+            TimeZone(identifier: "Europe/Istanbul")!,       // TRT
+            TimeZone(identifier: "Europe/Zurich")!,         // CET
+            TimeZone(identifier: "Europe/Brussels")!,       // CET
+            TimeZone(identifier: "Europe/Warsaw")!,         // CET
+            TimeZone(identifier: "Europe/Vienna")!,         // CET
+            TimeZone(identifier: "Europe/Lisbon")!,         // WET
+            // Asia
             TimeZone(identifier: "Asia/Tokyo")!,            // JST
             TimeZone(identifier: "Asia/Shanghai")!,         // CST
             TimeZone(identifier: "Asia/Hong_Kong")!,        // HKT
@@ -74,18 +84,58 @@ struct TimestampConverterView: View {
             TimeZone(identifier: "Asia/Seoul")!,            // KST
             TimeZone(identifier: "Asia/Kolkata")!,          // IST
             TimeZone(identifier: "Asia/Dubai")!,            // GST
-            TimeZone(identifier: "Australia/Sydney")!,      // AEST
-            TimeZone(identifier: "Australia/Melbourne")!,   // AEST
-            TimeZone(identifier: "Pacific/Auckland")!,      // NZST
+            TimeZone(identifier: "Asia/Bangkok")!,          // ICT
+            TimeZone(identifier: "Asia/Jakarta")!,          // WIB
+            TimeZone(identifier: "Asia/Manila")!,           // PHT
+            TimeZone(identifier: "Asia/Taipei")!,           // CST
+            TimeZone(identifier: "Asia/Karachi")!,          // PKT
+            TimeZone(identifier: "Asia/Tehran")!,           // IRST
+            TimeZone(identifier: "Asia/Tel_Aviv")!,         // IST
+            TimeZone(identifier: "Asia/Riyadh")!,           // AST
+            TimeZone(identifier: "Asia/Kuala_Lumpur")!,     // MYT
+            TimeZone(identifier: "Asia/Ho_Chi_Minh")!,      // ICT
+            TimeZone(identifier: "Asia/Colombo")!,          // IST
+            TimeZone(identifier: "Asia/Dhaka")!,            // BST
+            TimeZone(identifier: "Asia/Kathmandu")!,        // NPT
+            // Africa
+            TimeZone(identifier: "Africa/Cairo")!,          // EET
+            TimeZone(identifier: "Africa/Johannesburg")!,   // SAST
+            TimeZone(identifier: "Africa/Lagos")!,          // WAT
+            TimeZone(identifier: "Africa/Nairobi")!,        // EAT
+            TimeZone(identifier: "Africa/Casablanca")!,     // WET
+            // Pacific
+            TimeZone(identifier: "Australia/Sydney")!,      // AEDT
+            TimeZone(identifier: "Australia/Melbourne")!,   // AEDT
+            TimeZone(identifier: "Australia/Brisbane")!,    // AEST
+            TimeZone(identifier: "Australia/Perth")!,       // AWST
+            TimeZone(identifier: "Australia/Adelaide")!,    // ACDT
+            TimeZone(identifier: "Pacific/Auckland")!,      // NZDT
+            TimeZone(identifier: "Pacific/Fiji")!,          // FJT
+            TimeZone(identifier: "Pacific/Honolulu")!,      // HST
         ].compactMap { $0 }
         
-        // Add current timezone at the top, but avoid duplicates
+        // Sort all timezones by UTC offset
+        let sortedTimezones = allTimezones.sorted { tz1, tz2 in
+            let offset1 = tz1.secondsFromGMT()
+            let offset2 = tz2.secondsFromGMT()
+            
+            // If offsets are equal, sort alphabetically by identifier
+            if offset1 == offset2 {
+                return tz1.identifier < tz2.identifier
+            }
+            return offset1 < offset2
+        }
+        
+        // Add current timezone at the top, but avoid duplicates in the sorted list
         var result = [TimeZone.current]
-        for timezone in allTimezones {
+        
+        // Add separator indicator (this is just for organization, not an actual timezone)
+        for timezone in sortedTimezones {
             if timezone.identifier != TimeZone.current.identifier {
                 result.append(timezone)
             }
         }
+        
         return result
     }
     
@@ -147,17 +197,13 @@ struct TimestampConverterView: View {
             .padding(.top, 16)
             
             // Timezone selector for both conversion modes
-            HStack {
-                Picker("Time zone", selection: $selectedTimezone) {
-                    ForEach(commonTimezones, id: \.self) { timezone in
-                        Text(timezoneDisplayName(for: timezone)).tag(timezone)
-                    }
+            Picker("Time zone", selection: $selectedTimezone) {
+                ForEach(commonTimezones, id: \.self) { timezone in
+                    Text(timezoneDisplayName(for: timezone)).tag(timezone)
                 }
-                .pickerStyle(.menu)
-                .frame(maxWidth: 300)
-                
-                Spacer()
             }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)
             
             // Date picker (only show in "To Timestamp" mode and when toggled)
@@ -564,41 +610,102 @@ struct TimestampConverterView: View {
     }
     
     private func timezoneDisplayName(for timezone: TimeZone) -> String {
+        // Get UTC offset
+        let offset = timezone.secondsFromGMT()
+        let hours = abs(offset) / 3600
+        let minutes = (abs(offset) % 3600) / 60
+        let sign = offset >= 0 ? "+" : "-"
+        let offsetString = minutes > 0 ? String(format: "%@%02d:%02d", sign, hours, minutes) : String(format: "%@%02d:00", sign, hours)
+        
         if timezone == TimeZone.current {
-            return "Local (\(timezone.identifier))"
+            let cityName = getSimpleCityName(for: timezone)
+            return "✓ Current • \(cityName) (UTC\(offsetString))"
         }
         
         let displayNames: [String: String] = [
-            "UTC": "UTC",
-            "America/New_York": "Eastern Time (US)",
-            "America/Chicago": "Central Time (US)",
-            "America/Denver": "Mountain Time (US)",
-            "America/Los_Angeles": "Pacific Time (US)",
+            "UTC": "UTC • Universal Time",
+            // Americas
+            "America/New_York": "New York • Eastern Time",
+            "America/Chicago": "Chicago • Central Time",
+            "America/Denver": "Denver • Mountain Time",
+            "America/Los_Angeles": "Los Angeles • Pacific Time",
             "America/Toronto": "Toronto",
             "America/Vancouver": "Vancouver",
-            "America/Sao_Paulo": "São Paulo",
+            "America/Sao_Paulo": "São Paulo • Brazil",
             "America/Mexico_City": "Mexico City",
-            "Europe/London": "London (GMT)",
-            "Europe/Paris": "Paris (CET)",
-            "Europe/Berlin": "Berlin (CET)",
-            "Europe/Rome": "Rome (CET)",
-            "Europe/Madrid": "Madrid (CET)",
-            "Europe/Amsterdam": "Amsterdam (CET)",
-            "Europe/Stockholm": "Stockholm (CET)",
-            "Europe/Moscow": "Moscow (MSK)",
-            "Asia/Tokyo": "Tokyo (JST)",
-            "Asia/Shanghai": "Shanghai (CST)",
-            "Asia/Hong_Kong": "Hong Kong (HKT)",
-            "Asia/Singapore": "Singapore (SGT)",
-            "Asia/Seoul": "Seoul (KST)",
-            "Asia/Kolkata": "India (IST)",
-            "Asia/Dubai": "Dubai (GST)",
-            "Australia/Sydney": "Sydney (AEST)",
-            "Australia/Melbourne": "Melbourne (AEST)",
-            "Pacific/Auckland": "Auckland (NZST)"
+            "America/Buenos_Aires": "Buenos Aires • Argentina",
+            "America/Bogota": "Bogotá • Colombia",
+            "America/Lima": "Lima • Peru",
+            // Europe
+            "Europe/London": "London • GMT/BST",
+            "Europe/Paris": "Paris • France",
+            "Europe/Berlin": "Berlin • Germany",
+            "Europe/Rome": "Rome • Italy",
+            "Europe/Madrid": "Madrid • Spain",
+            "Europe/Amsterdam": "Amsterdam • Netherlands",
+            "Europe/Stockholm": "Stockholm • Sweden",
+            "Europe/Moscow": "Moscow • Russia",
+            "Europe/Athens": "Athens • Greece",
+            "Europe/Istanbul": "Istanbul • Turkey",
+            "Europe/Zurich": "Zurich • Switzerland",
+            "Europe/Brussels": "Brussels • Belgium",
+            "Europe/Warsaw": "Warsaw • Poland",
+            "Europe/Vienna": "Vienna • Austria",
+            "Europe/Lisbon": "Lisbon • Portugal",
+            // Asia
+            "Asia/Tokyo": "Tokyo • Japan",
+            "Asia/Shanghai": "Shanghai • China",
+            "Asia/Hong_Kong": "Hong Kong",
+            "Asia/Singapore": "Singapore",
+            "Asia/Seoul": "Seoul • South Korea",
+            "Asia/Kolkata": "Kolkata • India",
+            "Asia/Dubai": "Dubai • UAE",
+            "Asia/Bangkok": "Bangkok • Thailand",
+            "Asia/Jakarta": "Jakarta • Indonesia",
+            "Asia/Manila": "Manila • Philippines",
+            "Asia/Taipei": "Taipei • Taiwan",
+            "Asia/Karachi": "Karachi • Pakistan",
+            "Asia/Tehran": "Tehran • Iran",
+            "Asia/Tel_Aviv": "Tel Aviv • Israel",
+            "Asia/Riyadh": "Riyadh • Saudi Arabia",
+            "Asia/Kuala_Lumpur": "Kuala Lumpur • Malaysia",
+            "Asia/Ho_Chi_Minh": "Ho Chi Minh • Vietnam",
+            "Asia/Colombo": "Colombo • Sri Lanka",
+            "Asia/Dhaka": "Dhaka • Bangladesh",
+            "Asia/Kathmandu": "Kathmandu • Nepal",
+            // Africa
+            "Africa/Cairo": "Cairo • Egypt",
+            "Africa/Johannesburg": "Johannesburg • South Africa",
+            "Africa/Lagos": "Lagos • Nigeria",
+            "Africa/Nairobi": "Nairobi • Kenya",
+            "Africa/Casablanca": "Casablanca • Morocco",
+            // Pacific
+            "Australia/Sydney": "Sydney • Australia",
+            "Australia/Melbourne": "Melbourne • Australia",
+            "Australia/Brisbane": "Brisbane • Australia",
+            "Australia/Perth": "Perth • Australia",
+            "Australia/Adelaide": "Adelaide • Australia",
+            "Pacific/Auckland": "Auckland • New Zealand",
+            "Pacific/Fiji": "Fiji",
+            "Pacific/Honolulu": "Honolulu • Hawaii"
         ]
         
-        return displayNames[timezone.identifier] ?? timezone.identifier
+        let cityName = displayNames[timezone.identifier] ?? timezone.identifier
+        
+        // Special handling for UTC
+        if timezone.identifier == "UTC" {
+            return "UTC+00:00 • Universal Time"
+        }
+        
+        return "UTC\(offsetString) • \(cityName)"
+    }
+    
+    private func getSimpleCityName(for timezone: TimeZone) -> String {
+        // Extract city name from identifier
+        if let lastComponent = timezone.identifier.split(separator: "/").last {
+            return String(lastComponent).replacingOccurrences(of: "_", with: " ")
+        }
+        return timezone.identifier
     }
     
     private func normalizeTimeFormat(_ input: String) -> String {
