@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-08-13
+
+### Added
+- **Smart Update Detection**: Automatically detects installation method (Homebrew vs direct download)
+- **Installation-Specific Update Instructions**: 
+  - Homebrew users see `brew upgrade` command with copy button
+  - Direct download users get download link to latest release
+- **Release Process Documentation**: Comprehensive release instructions in CLAUDE.md
+- **Release Template**: Standardized template for consistent release notes
+
+### Fixed
+- **JWT Tool**: Removed unsupported RS256 algorithm option that was causing errors
+- **Update Checker**: Simplified implementation, accepting harmless QoS warnings
+
+### Improved
+- **Release Workflow**: Now includes both installation and upgrade instructions
+- **Update Experience**: Better guidance for users based on their installation method
+
 ## [1.0.0] - 2025-08-13
 
 ### Added
@@ -236,7 +254,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...v1.0.0
 [1.0.0-beta.11]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.10...v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.9...v1.0.0-beta.10
