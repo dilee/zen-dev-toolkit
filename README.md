@@ -7,7 +7,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.0--beta.7-yellow)
+![Version](https://img.shields.io/badge/version-1.0.0--beta.9-yellow)
 
 ## 🚀 Features
 
@@ -21,6 +21,12 @@ A lightweight macOS menu bar application that provides developers with quick acc
   - File upload support for JSON files
   - Copy/paste integration with system clipboard
   - Keyboard shortcuts (⌘+Return to format)
+  - **NEW: JSONPath Query Support**
+    - Query JSON data using JSONPath expressions
+    - Support for property access, array operations, wildcards
+    - Recursive descent for nested searches
+    - Basic filter expressions for conditional selection
+    - Quick-access examples for common patterns
 
 - **Base64 Encoder/Decoder**
   - Encode text to Base64 format
