@@ -47,16 +47,12 @@ struct JWTView: View {
         case HS256 = "HS256"
         case HS384 = "HS384"
         case HS512 = "HS512"
-        case RS256 = "RS256"
+        // RS256 removed - requires RSA key pair implementation
         
         var displayName: String { rawValue }
         var requiresSecret: Bool {
-            switch self {
-            case .HS256, .HS384, .HS512:
-                return true
-            case .RS256:
-                return false // Would need public key for verification
-            }
+            // All current algorithms require a secret
+            return true
         }
     }
     
@@ -992,8 +988,6 @@ struct JWTView: View {
             return try hmacSHA384(data: messageData, key: secretData)
         case .HS512:
             return try hmacSHA512(data: messageData, key: secretData)
-        case .RS256:
-            throw JWTError.unsupportedAlgorithm("RS256 not supported in this implementation")
         }
     }
     
