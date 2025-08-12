@@ -39,7 +39,7 @@ struct UpdateNotificationView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.blue.opacity(0.1))
+                .background(Color(NSColor.controlBackgroundColor))
                 .overlay(
                     Rectangle()
                         .frame(height: 0.5)
