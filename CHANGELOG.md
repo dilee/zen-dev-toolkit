@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.11] - 2025-08-12
+
+### Added
+- **JWT Token Tool**: Comprehensive JWT token manipulation utility
+  - Decode JWT tokens to view header, payload, and signature sections
+  - Generate new JWT tokens with custom claims and expiration
+  - Verify JWT signatures with secret key validation
+  - Support for HMAC algorithms (HS256, HS384, HS512)
+  - Human-readable claims display with expiration tracking
+  - Toggle between readable and JSON views for payload data
+  - Real-time token validation and error feedback
+  - Copy individual sections or entire tokens to clipboard
+
+### Fixed
+- JWT view text areas now have consistent width with other tool views
+- Fixed deprecated `onChange` warning in JSONFormatterView
+- Improved button height consistency in URL encoder view
+
 ## [1.0.0-beta.10] - 2025-08-12
 
 ### Added
@@ -189,7 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.10...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.11...HEAD
+[1.0.0-beta.11]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.10...v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.9...v1.0.0-beta.10
 [1.0.0-beta.8]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.7...v1.0.0-beta.8
 [1.0.0-beta.7]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.0-beta.6...v1.0.0-beta.7
