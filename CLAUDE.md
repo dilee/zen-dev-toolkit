@@ -209,11 +209,18 @@ When preparing a new release, follow these steps:
    - Create a GitHub release
    - Upload the built artifacts
 
+6. **After CI/CD completes, update the release description**:
+   - Use `.github/RELEASE_TEMPLATE.md` as a guide
+   - Include both installation AND upgrade instructions
+   - Add checksums from the built artifacts
+   - Link to the full changelog
+
 ### Important Notes
 - **MARKETING_VERSION in project.pbxproj overrides Info.plist** - Always update both!
 - Only create the tag after all version updates are committed
 - Use semantic versioning (MAJOR.MINOR.PATCH)
 - The CI/CD pipeline triggers on tags starting with 'v'
+- Always include upgrade instructions for both Homebrew and direct download users
 
 ## Important Instructions
 

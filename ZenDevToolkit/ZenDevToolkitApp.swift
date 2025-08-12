@@ -152,22 +152,58 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func showUpdateAlert() {
         let alert = NSAlert()
         alert.messageText = "Update Available"
-        alert.informativeText = "ZenDevToolkit \(updateChecker.latestVersion) is available. You have \(updateChecker.currentVersion)."
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "View Release")
-        alert.addButton(withTitle: "Skip This Version")
-        alert.addButton(withTitle: "Remind Me Later")
         
+        // Different message based on installation method
+        if updateChecker.isHomebrewInstall {
+            alert.informativeText = """
+                ZenDevToolkit \(updateChecker.latestVersion) is available. You have \(updateChecker.currentVersion).
+                
+                To update, run:
+                brew upgrade zen-dev-toolkit
+                """
+            alert.addButton(withTitle: "View Release Notes")
+            alert.addButton(withTitle: "Copy Command")
+            alert.addButton(withTitle: "Skip This Version")
+            alert.addButton(withTitle: "Remind Me Later")
+        } else {
+            alert.informativeText = """
+                ZenDevToolkit \(updateChecker.latestVersion) is available. You have \(updateChecker.currentVersion).
+                
+                Download the latest version from GitHub.
+                """
+            alert.addButton(withTitle: "Download Update")
+            alert.addButton(withTitle: "Skip This Version")
+            alert.addButton(withTitle: "Remind Me Later")
+        }
+        
+        alert.alertStyle = .informational
         NSApp.activate(ignoringOtherApps: true)
         
         let response = alert.runModal()
-        switch response {
-        case .alertFirstButtonReturn:
-            updateChecker.openReleaseNotes()
-        case .alertSecondButtonReturn:
-            updateChecker.skipThisVersion()
-        default:
-            break
+        
+        if updateChecker.isHomebrewInstall {
+            switch response {
+            case .alertFirstButtonReturn:
+                updateChecker.openReleaseNotes()
+            case .alertSecondButtonReturn:
+                // Copy brew command to clipboard
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString("brew upgrade zen-dev-toolkit", forType: .string)
+            case .alertThirdButtonReturn:
+                updateChecker.skipThisVersion()
+            default:
+                break
+            }
+        } else {
+            switch response {
+            case .alertFirstButtonReturn:
+                updateChecker.openReleaseNotes()
+            case .alertSecondButtonReturn:
+                updateChecker.skipThisVersion()
+            default:
+                break
+            }
         }
     }
     

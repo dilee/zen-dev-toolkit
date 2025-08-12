@@ -21,6 +21,17 @@ class UpdateChecker: ObservableObject {
         self.lastCheckDate = userDefaults.object(forKey: lastCheckKey) as? Date
     }
     
+    // Detect if app was installed via Homebrew
+    var isHomebrewInstall: Bool {
+        // Homebrew installs apps to /Applications or ~/Applications via symlink from Cellar
+        let bundlePath = Bundle.main.bundlePath
+        // Check if the app is in Homebrew's Cellar directory or linked from it
+        return bundlePath.contains("/Homebrew/") || 
+               bundlePath.contains("homebrew") ||
+               FileManager.default.fileExists(atPath: "/opt/homebrew/bin/zen-dev-toolkit") ||
+               FileManager.default.fileExists(atPath: "/usr/local/bin/zen-dev-toolkit")
+    }
+    
     func checkForUpdates(force: Bool = false) async {
         // Skip if checked recently (within 24 hours) unless forced
         if !force, let lastCheck = lastCheckDate, Date().timeIntervalSince(lastCheck) < 86400 {

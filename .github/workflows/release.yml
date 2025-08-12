@@ -178,16 +178,35 @@ jobs:
         body: |
           ## Installation
           
-          ### Via Homebrew
+          ### First-time Installation via Homebrew
           ```bash
           brew tap dilee/tap
           brew install --cask zen-dev-toolkit
           ```
           
-          ### Direct Download
+          ### First-time Direct Download
           Download the zip file below and extract ZenDevToolkit.app to your Applications folder.
           
+          ## Upgrading
+          
+          ### Upgrade via Homebrew
+          If you previously installed via Homebrew:
+          ```bash
+          brew upgrade --cask zen-dev-toolkit
+          ```
+          
+          ### Upgrade from Direct Download
+          1. Download the latest zip file below
+          2. Quit ZenDevToolkit if it's running
+          3. Replace the old app in Applications folder with the new one
+          4. Launch the updated app
+          
           **✅ This release is fully signed and notarized** - no security warnings when opening!
+          
+          ## Auto Update Notification
+          The app will automatically check for updates and notify you when new versions are available:
+          - **Homebrew users**: Will see instructions to run `brew upgrade`
+          - **Direct download users**: Will be directed to download the latest release
           
           ## Changes
           See [CHANGELOG.md](https://github.com/dilee/zen-dev-toolkit/blob/main/CHANGELOG.md) for details.
