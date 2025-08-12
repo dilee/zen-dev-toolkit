@@ -269,11 +269,12 @@ struct JSONFormatterView: View {
         }
         
         do {
+            // First validate that it's valid JSON
             let data = inputText.data(using: .utf8) ?? Data()
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            let formattedData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys])
+            _ = try JSONSerialization.jsonObject(with: data, options: [])
             
-            if let formattedString = String(data: formattedData, encoding: .utf8) {
+            // Format the JSON string while preserving key order
+            if let formattedString = formatJSONString(inputText) {
                 outputText = formattedString
                 isValid = true
                 updateLineCount()
@@ -296,11 +297,12 @@ struct JSONFormatterView: View {
         }
         
         do {
+            // First validate that it's valid JSON
             let data = inputText.data(using: .utf8) ?? Data()
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            let minifiedData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.sortedKeys])
+            _ = try JSONSerialization.jsonObject(with: data, options: [])
             
-            if let minifiedString = String(data: minifiedData, encoding: .utf8) {
+            // Minify the JSON string while preserving key order
+            if let minifiedString = minifyJSONString(inputText) {
                 outputText = minifiedString
                 isValid = true
                 updateLineCount()
@@ -416,6 +418,106 @@ struct JSONFormatterView: View {
         }
         
         return "Invalid JSON format"
+    }
+    
+    // MARK: - JSON Formatting Helpers
+    
+    private func formatJSONString(_ jsonString: String) -> String? {
+        // Use a more robust approach with proper JSON tokenization
+        return formatJSONWithTokenizer(jsonString, minify: false)
+    }
+    
+    private func minifyJSONString(_ jsonString: String) -> String? {
+        // Use a more robust approach with proper JSON tokenization
+        return formatJSONWithTokenizer(jsonString, minify: true)
+    }
+    
+    private func formatJSONWithTokenizer(_ jsonString: String, minify: Bool) -> String? {
+        let trimmed = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        
+        var result = ""
+        var indentLevel = 0
+        let indentString = "  " // 2 spaces for indentation
+        var i = trimmed.startIndex
+        
+        while i < trimmed.endIndex {
+            let char = trimmed[i]
+            
+            switch char {
+            case "\"":
+                // Handle string literals properly
+                let (stringLiteral, nextIndex) = extractStringLiteral(from: trimmed, startingAt: i)
+                result.append(stringLiteral)
+                i = nextIndex
+                continue
+                
+            case "{", "[":
+                result.append(char)
+                if !minify {
+                    indentLevel += 1
+                    result.append("\n")
+                    result.append(String(repeating: indentString, count: indentLevel))
+                }
+                
+            case "}", "]":
+                if !minify {
+                    indentLevel -= 1
+                    result.append("\n")
+                    result.append(String(repeating: indentString, count: indentLevel))
+                }
+                result.append(char)
+                
+            case ",":
+                result.append(char)
+                if !minify {
+                    result.append("\n")
+                    result.append(String(repeating: indentString, count: indentLevel))
+                }
+                
+            case ":":
+                result.append(char)
+                if !minify {
+                    result.append(" ")
+                }
+                
+            case " ", "\t", "\n", "\r":
+                // Skip whitespace when not in string (already handled by string extraction)
+                break
+                
+            default:
+                result.append(char)
+            }
+            
+            i = trimmed.index(after: i)
+        }
+        
+        return result.isEmpty ? nil : result
+    }
+    
+    private func extractStringLiteral(from text: String, startingAt startIndex: String.Index) -> (String, String.Index) {
+        var result = "\""  // Start with opening quote
+        var i = text.index(after: startIndex)  // Skip opening quote
+        var escaped = false
+        
+        while i < text.endIndex {
+            let char = text[i]
+            result.append(char)
+            
+            if escaped {
+                escaped = false
+            } else if char == "\\" {
+                escaped = true
+            } else if char == "\"" {
+                // End of string literal
+                i = text.index(after: i)
+                break
+            }
+            
+            i = text.index(after: i)
+        }
+        
+        return (result, i)
     }
 }
 
