@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2025-08-13
+
+### Changed
+- **Compatibility**: Lowered minimum macOS version requirement from 15.5 to 15.0
+  - Provides broader compatibility for users on macOS Sequoia
+  - Maintains full Swift Testing framework support
+  - All features remain fully functional on macOS 15.0+
+
 ## [1.0.4] - 2025-08-12
 
 ### Fixed
@@ -292,7 +300,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.1...v1.0.2
