@@ -9,7 +9,7 @@
     <key>CFBundleDisplayName</key>
     <string>ZenDevToolkit</string>
     <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <string>com.luminaxa.ZenDevToolkit</string>
     <key>CFBundleVersion</key>
     <string>105</string>
     <key>CFBundleShortVersionString</key>
