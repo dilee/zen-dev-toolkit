@@ -199,7 +199,7 @@ brew install --cask dilee/tap/zen-dev-toolkit
 ```
 
 ### App Won't Open?
-- **macOS 14.0+ required**: Check your macOS version in Apple Menu > About This Mac
+- **macOS 15.0+ required**: Check your macOS version in Apple Menu > About This Mac
 - **Security warning**: Should not appear (app is fully signed and notarized)
 - **Menu bar full**: Look for the 📦 icon, might be hidden in overflow menu
 
