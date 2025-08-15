@@ -9,13 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTool = "JSON"
-    @ObservedObject var updateChecker = UpdateChecker.shared
-    @State private var showUpdateBanner = false
-    
-    // Dynamic height based on banner visibility
-    var windowHeight: CGFloat {
-        showUpdateBanner && updateChecker.updateAvailable ? 730 : 680 // Add 50px for banner when visible
-    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -59,80 +52,8 @@ struct ContentView: View {
             .frame(width: 420, height: 620) // Fixed size for all views
             .background(Color(NSColor.windowBackgroundColor))
             .animation(.none, value: selectedTool) // Disable animation
-            
-            // Update notification banner at the bottom
-            if showUpdateBanner && updateChecker.updateAvailable {
-                UpdateBannerView(showBanner: $showUpdateBanner, latestVersion: updateChecker.latestVersion, releaseURL: updateChecker.releaseURL)
-                    .frame(height: 50)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
         }
-        .frame(width: 420, height: windowHeight)
-        .animation(.easeInOut(duration: 0.3), value: showUpdateBanner)
-        .onReceive(updateChecker.$updateAvailable) { available in
-            if available {
-                showUpdateBanner = true
-            }
-        }
-    }
-}
-
-// Update banner view for bottom position
-struct UpdateBannerView: View {
-    @Binding var showBanner: Bool
-    let latestVersion: String
-    let releaseURL: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "arrow.down.circle.fill")
-                .foregroundColor(.blue)
-                .font(.system(size: 16))
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Update Available")
-                    .font(.caption.bold())
-                Text("Version \(latestVersion) is available")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Button("View") {
-                // Open release notes for the specific version
-                if let url = URL(string: releaseURL), !releaseURL.isEmpty {
-                    NSWorkspace.shared.open(url)
-                } else {
-                    // Fallback to releases page if no specific URL available
-                    if let url = URL(string: "https://github.com/dilee/zen-dev-toolkit/releases") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-            }
-            .buttonStyle(.borderless)
-            .font(.caption)
-            
-            Button {
-                withAnimation {
-                    showBanner = false
-                }
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.75))
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color.gray.opacity(0.3)),
-            alignment: .top
-        )
+        .frame(width: 420, height: 680)
     }
 }
 

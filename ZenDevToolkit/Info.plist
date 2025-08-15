@@ -4,6 +4,10 @@
 <dict>
     <key>LSUIElement</key>
     <true/>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>ITSEncryptionExportComplianceCode</key>
+    <string>PASTE-THE-KEY-VALUE-HERE</string>
     <key>CFBundleName</key>
     <string>ZenDevToolkit</string>
     <key>CFBundleDisplayName</key>
