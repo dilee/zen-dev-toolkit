@@ -1,8 +1,20 @@
 # ZenDevToolkit
 
-![ZenDevToolkit Hero Banner](Docs/Marketing/Banners/hero-banner.png)
+![ZenDevToolkit Hero Banner](Docs/Marketing/Banners/hero-banner-02.png)
+
+<p align="center">
+  <img src="Docs/Marketing/Banners/hero-banner-04.png" width="32%" alt="ZenDevToolkit Features" />
+  <img src="Docs/Marketing/Screenshots/dark/screenshot-real-01.png" width="32%" alt="ZenDevToolkit Screenshot" />
+  <img src="Docs/Marketing/Banners/hero-banner-03.png" width="32%" alt="ZenDevToolkit UI" />
+</p>
 
 A lightweight macOS menu bar application that provides developers with quick access to commonly-needed utility functions without opening a web browser.
+
+<p align="center">
+  <a href="https://apps.apple.com/app/zen-dev-toolkit/id6750487692">
+    <img src="Docs/Marketing/Badges/mac-app-store-badge.svg" alt="Download on the Mac App Store" height="50">
+  </a>
+</p>
 
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
@@ -11,7 +23,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 ## 🚀 Features
 
-### Currently Implemented ✅
+### Available Tools
 
 - **JSON Formatter & Validator**
   - Format/beautify JSON with proper indentation
@@ -61,7 +73,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
   - JSON view for raw payload data
   - Copy individual sections or entire tokens
 
-### Coming Soon
+### Upcoming Features
 - **Regex Tester & Matcher**
 - **Color Converter** (hex, RGB, HSL)
 - **QR Code Generator**
@@ -119,7 +131,10 @@ brew install --cask zen-dev-toolkit
    - The app will appear in your menu bar
 
 ### Mac App Store
-*Coming soon: Planning to release on Mac App Store*
+
+[![Download on the Mac App Store](Docs/Marketing/Badges/mac-app-store-badge.svg)](https://apps.apple.com/app/zen-dev-toolkit/id6750487692)
+
+Get ZenDevToolkit directly from the Mac App Store for automatic updates and seamless installation.
 
 ## 💻 Usage
 
