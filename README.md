@@ -80,7 +80,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 
 ## 📋 Requirements
 
-- **macOS**: 14.0 (Sonoma) or later
+- **macOS**: 15.0 (Sequoia) or later
 - **Xcode**: 15.0 or later
 - **Swift**: 5.9 or later
 
@@ -112,6 +112,12 @@ brew install --cask zen-dev-toolkit
 3. Move `ZenDevToolkit.app` to your Applications folder
 4. **First launch**: Just double-click to open (fully signed and notarized)
 
+### Mac App Store
+
+[![Download on the Mac App Store](Docs/Marketing/Badges/mac-app-store-badge.svg)](https://apps.apple.com/app/zen-dev-toolkit/id6750487692)
+
+Get ZenDevToolkit directly from the Mac App Store for automatic updates and seamless installation.
+
 ### Building from Source
 
 1. Clone the repository:
@@ -129,12 +135,6 @@ brew install --cask zen-dev-toolkit
    - Select your Mac as the build target
    - Press ⌘+R or click the Run button in Xcode
    - The app will appear in your menu bar
-
-### Mac App Store
-
-[![Download on the Mac App Store](Docs/Marketing/Badges/mac-app-store-badge.svg)](https://apps.apple.com/app/zen-dev-toolkit/id6750487692)
-
-Get ZenDevToolkit directly from the Mac App Store for automatic updates and seamless installation.
 
 ## 💻 Usage
 
@@ -157,23 +157,6 @@ Get ZenDevToolkit directly from the Mac App Store for automatic updates and seam
 - **Fast & Lightweight**: Native SwiftUI app with instant response times
 - **Privacy-Focused**: All processing happens locally, no data sent to servers
 - **Pure Menu Bar App**: Runs exclusively in menu bar, won't appear in Dock for clean desktop experience
-
-## 🏗️ Project Structure
-
-```
-zen-dev-toolkit/
-├── ZenDevToolkit/               # Main app source files
-│   ├── ContentView.swift        # Main UI and tool views
-│   ├── ZenDevToolkitApp.swift   # App lifecycle and menu bar setup
-│   ├── Info.plist               # App configuration
-│   └── Assets.xcassets/         # App icons and resources
-├── ZenDevToolkitTests/          # Unit tests
-├── ZenDevToolkitUITests/        # UI tests
-├── ZenDevToolkit.xcodeproj/     # Xcode project file
-├── README.md                    # Project documentation
-├── .gitignore                   # Git ignore rules
-└── CLAUDE.md                    # AI assistant context
-```
 
 ## 🤝 Contributing
 
