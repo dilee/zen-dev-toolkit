@@ -1,4 +1,4 @@
-# ZenDevToolkit
+# Zen Dev Toolkit
 
 ![ZenDevToolkit Hero Banner](Docs/Marketing/Banners/hero-banner-02.png)
 
