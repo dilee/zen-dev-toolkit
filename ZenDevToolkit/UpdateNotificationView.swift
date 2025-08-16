@@ -1,3 +1,4 @@
+#if !DISABLE_AUTO_UPDATE
 import SwiftUI
 
 struct UpdateNotificationView: View {
@@ -68,3 +69,4 @@ struct UpdateNotificationView: View {
         }
     }
 }
+#endif  // !DISABLE_AUTO_UPDATE

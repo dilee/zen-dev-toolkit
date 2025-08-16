@@ -28,15 +28,35 @@ Each tool is implemented as a separate SwiftUI view:
 - TimestampConverterView: Fully implemented with Unix/human date conversion and timezone support
 - Base64View, URLEncoderView, HashGeneratorView, UUIDGeneratorView: Placeholder implementations
 
+## Build Configuration
+
+### Single Branch Strategy
+
+The project now uses a single `main` branch for both Homebrew and App Store distribution. The auto-updater feature is **enabled by default** and conditionally disabled with the `DISABLE_AUTO_UPDATE` flag:
+
+- **Default builds (Debug/Release)**: Auto-updater enabled
+- **GitHub Actions/Homebrew**: Auto-updater enabled (default)
+- **App Store builds**: Auto-updater disabled (use Debug-AppStore or add DISABLE_AUTO_UPDATE flag)
+
+This approach is App Store compliant as disabled code paths are acceptable for review.
+
 ## Development Commands
 
 ### Build and Run
 ```bash
-# Build the app
+# Build for Development/Homebrew (auto-updater enabled by default)
 xcodebuild -scheme ZenDevToolkit -configuration Debug
 
-# Build for release
+# Build for App Store (auto-updater disabled)
+xcodebuild -scheme ZenDevToolkit -configuration Debug \
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS="DISABLE_AUTO_UPDATE"
+
+# Build for release (Homebrew - auto-updater enabled by default)
 xcodebuild -scheme ZenDevToolkit -configuration Release
+
+# Build for release (App Store - auto-updater disabled)
+xcodebuild -scheme ZenDevToolkit -configuration Release \
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS="DISABLE_AUTO_UPDATE"
 
 # Clean build folder
 xcodebuild -scheme ZenDevToolkit clean
@@ -179,6 +199,32 @@ To add a new tool:
 ### Creating a New Release
 
 When preparing a new release, follow these steps:
+
+#### Building for Different Platforms
+
+**For Homebrew Release (GitHub)**:
+- The GitHub Actions workflow automatically builds with auto-updater enabled (default)
+- Just create and push a tag to trigger the release
+
+**For App Store Submission**:
+```bash
+# Build with auto-updater disabled for App Store
+xcodebuild -scheme ZenDevToolkit \
+  -configuration Release \
+  -archivePath build/ZenDevToolkit.xcarchive \
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS="DISABLE_AUTO_UPDATE" \
+  archive
+
+# Export for App Store Connect
+xcodebuild -exportArchive \
+  -archivePath build/ZenDevToolkit.xcarchive \
+  -exportPath build/export-appstore \
+  -exportOptionsPlist scripts/ExportOptions-AppStore.plist
+```
+
+**Using Xcode UI**:
+- For regular development: Use the default `ZenDevToolkit` scheme (auto-updater enabled)
+- For App Store testing: Use the `ZenDevToolkit` scheme with `Debug-AppStore` configuration
 
 1. **Update Version Numbers** (3 places):
    - `ZenDevToolkit/Info.plist`: Update both `CFBundleShortVersionString` (e.g., "1.0.1") and `CFBundleVersion` (e.g., "101")

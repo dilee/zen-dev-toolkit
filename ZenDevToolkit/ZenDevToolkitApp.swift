@@ -20,6 +20,8 @@ struct DevToolkitApp: App {
 
 // Custom panel that can appear above fullscreen apps
 class ToolkitPanel: NSPanel {
+    weak var appDelegate: AppDelegate?
+    
     override var canBecomeKey: Bool {
         return true
     }
@@ -31,23 +33,48 @@ class ToolkitPanel: NSPanel {
     override var acceptsFirstResponder: Bool {
         return true
     }
+    
+    // Override resignKey to handle window closing when it loses focus
+    // This approach is App Store compliant - no global event monitoring needed
+    // Note: We only use this when not using auto-updater to maintain compatibility
+    override func resignKey() {
+        super.resignKey()
+        
+        #if DISABLE_AUTO_UPDATE
+        // For App Store version: Close window when it loses key status
+        self.orderOut(nil)
+        #endif
+        // For Homebrew version: Keep using event monitor for better control
+    }
+    
+    // Ensure the panel can receive keyboard events
+    override var acceptsMouseMovedEvents: Bool {
+        get { true }
+        set { }
+    }
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var statusItem: NSStatusItem?
     private var window: NSPanel?
+    
+    #if !DISABLE_AUTO_UPDATE
     private var eventMonitor: Any?
     private let updateChecker = UpdateChecker.shared
+    #endif
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
         setupWindow()
+        
+        #if !DISABLE_AUTO_UPDATE
         setupEventMonitor()
         
         // Check for updates in the background
         Task {
             await updateChecker.checkForUpdates()
         }
+        #endif
     }
     
     private func setupMenuBar() {
@@ -63,27 +90,48 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     private func setupWindow() {
         // Create a custom panel that can appear above fullscreen apps
-        window = ToolkitPanel(
+        let panel = ToolkitPanel(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 680),
             styleMask: [.borderless, .fullSizeContentView, .utilityWindow, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
+        panel.appDelegate = self
+        window = panel
         
         if let window = window {
             window.contentViewController = NSHostingController(rootView: ContentView())
             window.backgroundColor = .clear
             window.isOpaque = false
             window.hasShadow = true
-            // Use a very high window level
-            window.level = NSWindow.Level(rawValue: Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue))
-            // Critical: Allow the window to appear in all spaces including fullscreen
-            window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+            
+            // Use status bar level - same as menu bar items
+            // This ensures reliable positioning above normal windows without being too aggressive
+            window.level = .statusBar
+            
+            // Critical collection behaviors (following Maccy's proven pattern):
+            // - auxiliary: Marks as auxiliary window that doesn't interfere with normal apps
+            // - stationary: Prevents automatic management by Spaces
+            // - moveToActiveSpace: Follows to the active Space
+            // - fullScreenAuxiliary: Appears over full-screen applications
+            window.collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+            
+            // Floating panel settings - key for staying on top
+            window.isFloatingPanel = true
+            
+            // Window positioning and behavior
             window.isMovableByWindowBackground = false
             window.isReleasedWhenClosed = false
+            
+            // Don't hide when losing key status - critical for visibility
             window.hidesOnDeactivate = false
-            window.isFloatingPanel = true
+            
+            // Allow the window to become key for input
             window.becomesKeyOnlyIfNeeded = false
+            
+            // Ensure the window can receive events
+            window.acceptsMouseMovedEvents = true
+            window.ignoresMouseEvents = false
             
             // Add rounded corners
             window.contentView?.wantsLayer = true
@@ -112,9 +160,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         aboutItem.target = self
         menu.addItem(aboutItem)
         
+        #if !DISABLE_AUTO_UPDATE
         let updateItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "")
         updateItem.target = self
         menu.addItem(updateItem)
+        #endif
         
         menu.addItem(NSMenuItem.separator())
         
@@ -135,6 +185,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         NSApp.orderFrontStandardAboutPanel(nil)
     }
     
+    #if !DISABLE_AUTO_UPDATE
     @objc private func checkForUpdates() {
         Task {
             await updateChecker.checkForUpdates(force: true)
@@ -217,6 +268,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
     }
+    #endif  // !DISABLE_AUTO_UPDATE
     
     @objc private func quitApp() {
         NSApp.terminate(nil)
@@ -242,24 +294,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         window.setFrameOrigin(NSPoint(x: x, y: y))
         
-        // Ensure we're using the highest possible window level
-        window.level = NSWindow.Level(rawValue: Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue))
-        window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        // Set window level to status bar level (matching Maccy's approach)
+        window.level = .statusBar
         
-        // Make the window visible and active
+        // Reapply collection behaviors to ensure proper behavior
+        window.collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        
+        // Order front regardless - forces window to front regardless of which app is active
         window.orderFrontRegardless()
-        window.makeKeyAndOrderFront(nil)
         
-        // Force activate our app
+        // Make the window key to receive keyboard input
+        window.makeKey()
+        
+        // Activate our app to ensure proper focus handling
         NSApp.activate(ignoringOtherApps: true)
         
         // Make the first text field the first responder
         DispatchQueue.main.async {
             window.makeFirstResponder(window.contentView)
-            // Force the window to the front again after a small delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                window.orderFrontRegardless()
-            }
         }
     }
     
@@ -267,6 +319,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         window?.orderOut(nil)
     }
     
+    #if !DISABLE_AUTO_UPDATE
     private func setupEventMonitor() {
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             if let window = self?.window, window.isVisible {
@@ -288,8 +341,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     
     deinit {
+        #if !DISABLE_AUTO_UPDATE
         if let eventMonitor = eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
         }
+        #endif
     }
+    #endif  // !DISABLE_AUTO_UPDATE
 }

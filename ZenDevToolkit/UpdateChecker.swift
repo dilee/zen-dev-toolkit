@@ -1,3 +1,4 @@
+#if !DISABLE_AUTO_UPDATE
 import Foundation
 import SwiftUI
 
@@ -178,3 +179,4 @@ struct GitHubAsset: Codable {
         case size
     }
 }
+#endif  // !DISABLE_AUTO_UPDATE

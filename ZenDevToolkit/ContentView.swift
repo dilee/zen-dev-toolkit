@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTool = "JSON"
+    
+    #if !DISABLE_AUTO_UPDATE
     @ObservedObject var updateChecker = UpdateChecker.shared
     @State private var showUpdateBanner = false
     
@@ -16,6 +18,9 @@ struct ContentView: View {
     var windowHeight: CGFloat {
         showUpdateBanner && updateChecker.updateAvailable ? 730 : 680 // Add 50px for banner when visible
     }
+    #else
+    var windowHeight: CGFloat { 680 }
+    #endif
     
     var body: some View {
         VStack(spacing: 0) {
@@ -60,23 +65,28 @@ struct ContentView: View {
             .background(Color(NSColor.windowBackgroundColor))
             .animation(.none, value: selectedTool) // Disable animation
             
+            #if !DISABLE_AUTO_UPDATE
             // Update notification banner at the bottom
             if showUpdateBanner && updateChecker.updateAvailable {
                 UpdateBannerView(showBanner: $showUpdateBanner, latestVersion: updateChecker.latestVersion, releaseURL: updateChecker.releaseURL)
                     .frame(height: 50)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            #endif
         }
         .frame(width: 420, height: windowHeight)
+        #if !DISABLE_AUTO_UPDATE
         .animation(.easeInOut(duration: 0.3), value: showUpdateBanner)
         .onReceive(updateChecker.$updateAvailable) { available in
             if available {
                 showUpdateBanner = true
             }
         }
+        #endif
     }
 }
 
+#if !DISABLE_AUTO_UPDATE
 // Update banner view for bottom position
 struct UpdateBannerView: View {
     @Binding var showBanner: Bool
@@ -135,6 +145,7 @@ struct UpdateBannerView: View {
         )
     }
 }
+#endif  // !DISABLE_AUTO_UPDATE
 
 struct CompactToolButton: View {
     let icon: String
