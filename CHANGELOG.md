@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2025-08-16
+
+### Added
+- Single-branch strategy for both Homebrew and App Store distribution
+- Build configurations for App Store submissions (Debug-AppStore, Release-AppStore)
+- Conditional compilation for auto-updater feature
+
+### Changed
+- Auto-updater is now enabled by default for development and Homebrew builds
+- Improved window management with App Store-compliant window dismissal
+- Window now uses `.statusBar` level for better reliability
+- Enhanced window collection behaviors for proper fullscreen app support
+
+### Technical
+- Merged window improvements from App Store distribution branch
+- Implemented conditional compilation using `DISABLE_AUTO_UPDATE` flag
+- Simplified release process with unified codebase
+
 ## [1.0.5] - 2025-08-13
 
 ### Changed
@@ -300,7 +318,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.2...v1.0.3
