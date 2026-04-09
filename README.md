@@ -205,10 +205,13 @@ brew install --cask dilee/tap/zen-dev-toolkit
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👤 Author
+## 👤 Authors
 
 **Dileesha Rajapakse**
 - GitHub: [@dilee](https://github.com/dilee)
+
+**Dulanjali Dilmi**
+- GitHub: [@dulanjalidilmi](https://github.com/dulanjalidilmi)
 
 ## Support
 
