@@ -98,6 +98,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     if let view = self.window?.contentView,
                        let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                        // Offscreen renders can't blur the desktop behind the
+                        // panel, so the material falls back to a washed-out
+                        // gray. Swap it for the opaque window background,
+                        // which matches how the panel reads in real use.
+                        func flattenMaterials(_ view: NSView) {
+                            if let effect = view as? NSVisualEffectView {
+                                effect.isHidden = true
+                            }
+                            view.subviews.forEach(flattenMaterials)
+                        }
+                        flattenMaterials(view)
+                        view.wantsLayer = true
+                        (self.window?.effectiveAppearance ?? NSApp.effectiveAppearance).performAsCurrentDrawingAppearance {
+                            view.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+                        }
                         view.cacheDisplay(in: view.bounds, to: rep)
                         if let data = rep.representation(using: .png, properties: [:]) {
                             let url = FileManager.default.temporaryDirectory.appendingPathComponent("panel-capture.png")
