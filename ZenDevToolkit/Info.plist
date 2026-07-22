@@ -18,5 +18,7 @@
     <string>Made with ❤️ by Dileesha R. • github.com/dilee</string>
     <key>CFBundleGetInfoString</key>
     <string>A lightweight developer toolkit for macOS</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 </dict>
 </plist>
