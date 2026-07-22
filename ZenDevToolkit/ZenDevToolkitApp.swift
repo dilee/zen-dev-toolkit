@@ -76,8 +76,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         setupToolShortcutMonitor()
 
         #if DEBUG
-        // Testing aid: `ZenDevToolkit -ShowPanelOnLaunch 1 -selectedTool Base64`
-        // opens the panel immediately and prints its frame for screenshots.
+        // Testing aids for screenshots and UI checks:
+        // `ZenDevToolkit -ShowPanelOnLaunch 1 -CapturePanel 1 -selectedTool Base64
+        //  -CaptureAppearance light -DemoContent 1`
+        if let style = UserDefaults.standard.string(forKey: "CaptureAppearance") {
+            NSApp.appearance = NSAppearance(named: style == "light" ? .aqua : .darkAqua)
+        }
         if UserDefaults.standard.bool(forKey: "ShowPanelOnLaunch") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 self.showWindow()

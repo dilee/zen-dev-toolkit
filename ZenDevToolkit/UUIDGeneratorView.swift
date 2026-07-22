@@ -248,6 +248,9 @@ struct UUIDGeneratorView: View {
         }
         .onAppear {
             generateNewUUID()
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
 
@@ -264,6 +267,19 @@ struct UUIDGeneratorView: View {
     }
 
     // MARK: - UUID Generation
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        selectedVersion = .v7
+        generatedUUIDs.removeAll()
+        selectedUUID = nil
+        for _ in 0..<6 {
+            generateNewUUID()
+        }
+    }
+    #endif
 
     private func generateNewUUID() {
         let uuid = makeUUID()

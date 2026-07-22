@@ -124,6 +124,11 @@ struct JWTView: View {
                 .padding(.vertical, 16)
             }
         }
+        .onAppear {
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
+        }
         .onChange(of: selectedMode) { _, newMode in
             // Tab-switch side effects (previously handled in JWTModeTabButton's action)
             resetOutputs()
@@ -701,6 +706,15 @@ struct JWTView: View {
     }
     
     // MARK: - Helper Functions
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        inputToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDI0IiwibmFtZSI6IkFkYSBMb3ZlbGFjZSIsInJvbGUiOiJkZXZlbG9wZXIiLCJpc3MiOiJ6ZW5kZXZ0b29sa2l0LmFwcCIsImlhdCI6MTc1MzIwMDAwMCwiZXhwIjoxOTExMDgxNjAwfQ.qIVWUYNReOGCmK-uONSBpuLANgFkZw4TYPEZm-30afQ"
+        decodeJWT()
+    }
+    #endif
+
     private func decodeJWT() {
         resetOutputs()
         

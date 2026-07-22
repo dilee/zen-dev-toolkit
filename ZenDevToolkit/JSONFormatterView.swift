@@ -344,6 +344,9 @@ struct JSONFormatterView: View {
         .onAppear {
             // Focus the input field when view appears
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
         .onChange(of: selectedMode) { _, newMode in
             clearError()
@@ -360,6 +363,16 @@ struct JSONFormatterView: View {
     }
 
     // MARK: - Actions
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        inputText = "{\"name\":\"ZenDevToolkit\",\"version\":\"1.1.0\",\"tools\":[\"JSON\",\"Base64\",\"URL\",\"Hash\",\"UUID\",\"Time\",\"JWT\"],\"features\":{\"globalHotkey\":true,\"launchAtLogin\":true,\"uuidV7\":true},\"rating\":4.9}"
+        updateCharacterCount()
+        formatJSON()
+    }
+    #endif
 
     private func formatJSON() {
         clearError()

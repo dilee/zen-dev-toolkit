@@ -383,6 +383,9 @@ struct TimestampConverterView: View {
         }
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
         .onChange(of: conversionMode) {
             clearAll()
@@ -400,6 +403,15 @@ struct TimestampConverterView: View {
     }
 
     // MARK: - Actions
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        inputText = "1753221600"
+        convertTimestamp()
+    }
+    #endif
 
     private func convertTimestamp() {
         clearError()

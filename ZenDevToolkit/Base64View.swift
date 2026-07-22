@@ -437,6 +437,9 @@ struct Base64View: View {
         }
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
 
@@ -498,6 +501,28 @@ struct Base64View: View {
     }
 
     // MARK: - Actions
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`):
+    // a gradient image rendered at runtime, delivered as a data URI so the
+    // decode path shows the image preview card.
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        mode = .decode
+        let size = NSSize(width: 160, height: 120)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSGradient(colors: [.systemBlue, .systemPurple, .systemPink])?
+            .draw(in: NSRect(origin: .zero, size: size), angle: 45)
+        image.unlockFocus()
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let png = rep.representation(using: .png, properties: [:]) else { return }
+        inputText = "data:image/png;base64,\(png.base64EncodedString())"
+        updateCharacterCount()
+        processBase64()
+    }
+    #endif
 
     private func processBase64() {
         clearError()

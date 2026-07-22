@@ -368,10 +368,23 @@ struct HashGeneratorView: View {
         }
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
 
     // MARK: - Hash Generation
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        inputText = "The quick brown fox jumps over the lazy dog"
+        updateCharacterCount()
+        generateHash()
+    }
+    #endif
 
     private func generateHash() {
         guard !inputText.isEmpty || selectedFileURL != nil else {

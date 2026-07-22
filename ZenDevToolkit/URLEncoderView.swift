@@ -453,10 +453,24 @@ struct URLEncoderView: View {
         }
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
 
     // MARK: - Actions
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        mode = .analyze
+        inputText = "https://api.github.com/search/repositories?q=menu+bar+toolkit&language=swift&sort=stars&order=desc&page=1#results"
+        updateCharacterCount()
+        processURL()
+    }
+    #endif
 
     private func processURL() {
         clearError()
