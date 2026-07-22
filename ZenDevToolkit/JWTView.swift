@@ -33,14 +33,6 @@ struct JWTView: View {
         case decode = "Decode"
         case generate = "Generate"
         case verify = "Verify"
-        
-        var icon: String {
-            switch self {
-            case .decode: return "eye"
-            case .generate: return "plus.circle"
-            case .verify: return "checkmark.shield"
-            }
-        }
     }
     
     enum JWTAlgorithm: String, CaseIterable {
@@ -101,20 +93,23 @@ struct JWTView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Mode selector tabs
-            HStack(spacing: 8) {
-                ForEach(JWTMode.allCases, id: \.self) { mode in
-                    JWTModeTabButton(title: mode.rawValue, icon: mode.icon, isSelected: selectedMode == mode) {
-                        selectedMode = mode
-                        clearError()
-                        resetOutputs()
+            // Mode selector
+            HStack(spacing: 12) {
+                Picker("Mode", selection: $selectedMode) {
+                    ForEach(JWTMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
                     }
                 }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+
+                Spacer()
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
-            
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     switch selectedMode {
@@ -130,6 +125,8 @@ struct JWTView: View {
             }
         }
         .onChange(of: selectedMode) { _, newMode in
+            // Tab-switch side effects (previously handled in JWTModeTabButton's action)
+            resetOutputs()
             if newMode == .decode && !inputToken.isEmpty {
                 decodeJWT()
             } else if newMode == .verify && !inputToken.isEmpty && !secretKey.isEmpty {
@@ -142,33 +139,39 @@ struct JWTView: View {
             }
         }
     }
+
+    // Standard content-container chrome shared by every field box.
+    private func fieldContainer(error: Bool = false) -> some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color.primary.opacity(0.04))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(error ? Color.red.opacity(0.4) : Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+    }
     
     // MARK: - Decode View
     private var decodeView: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Input Section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("JWT Token")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     Button(action: pasteFromClipboard) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Paste from clipboard (⌘V)")
                 }
                 .padding(.horizontal, 16)
-                
+
                 ZStack(alignment: .topLeading) {
                     UndoableTextEditor(text: $inputToken) { newText in
                         if selectedMode == .decode {
@@ -177,26 +180,20 @@ struct JWTView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 100, maxHeight: 120)
-                    
+
                     if inputToken.isEmpty {
-                        Text("Paste your JWT token here...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Text("Paste your JWT token here")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
-                        )
-                )
+                .background(fieldContainer(error: !errorMessage.isEmpty))
                 .padding(.horizontal, 16)
             }
-            
+
             // Token Status
             if !errorMessage.isEmpty {
                 HStack(spacing: 6) {
@@ -208,30 +205,29 @@ struct JWTView: View {
                         .lineLimit(1)
                     Spacer()
                 }
-                .foregroundColor(.orange)
+                .foregroundColor(.red)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.orange.opacity(0.1))
+                        .fill(Color.red.opacity(0.1))
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
             }
-            
+
             if tokenParts != nil {
                 VStack(alignment: .leading, spacing: 16) {
                     // Header Section
                     headerSection
-                    
+
                     // Payload Section
                     payloadSection
-                    
+
                     // Claims Section
                     if let claims = claims {
                         claimsSection(claims)
                     }
-                    
+
                     // Signature Section
                     signatureSection
                 }
@@ -246,39 +242,46 @@ struct JWTView: View {
             // Algorithm Selection
             VStack(alignment: .leading, spacing: 8) {
                 Text("Algorithm")
-                    .font(.system(size: 12, weight: .semibold))
-                
-                Picker("", selection: $selectedAlgorithm) {
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+
+                Picker("Algorithm", selection: $selectedAlgorithm) {
                     ForEach(JWTAlgorithm.allCases, id: \.self) { algorithm in
                         Text(algorithm.displayName).tag(algorithm)
                     }
                 }
                 .pickerStyle(.segmented)
+                .labelsHidden()
             }
             .padding(.horizontal, 16)
-            
+
             // Secret Key
             if selectedAlgorithm.requiresSecret {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Secret Key")
-                        .font(.system(size: 12, weight: .semibold))
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     SecureField("Enter secret key", text: $secretKey)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 12, design: .monospaced))
                         .focused($isSecretFocused)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(.caption, design: .monospaced))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(fieldContainer())
                 }
                 .padding(.horizontal, 16)
             }
-            
+
             // Claims Input
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("Claims (JSON)")
-                        .font(.system(size: 12, weight: .semibold))
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     Button(action: {
                         customClaims = """
                         {
@@ -290,74 +293,53 @@ struct JWTView: View {
                         }
                         """
                     }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 11))
-                            Text("Sample")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Text("Sample")
                     }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                     .help("Insert sample claims")
                 }
                 .padding(.horizontal, 16)
-                
+
                 ZStack(alignment: .topLeading) {
                     UndoableTextEditor(text: $customClaims) { _ in
                         // Claims updated
                     }
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 120, maxHeight: 120)
-                    
+
                     if customClaims.isEmpty {
-                        Text("Enter JSON claims...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Text("Enter JSON claims")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
-                        )
-                )
+                .background(fieldContainer())
                 .padding(.horizontal, 16)
             }
-            
+
             // Generate Button
             Button(action: generateJWT) {
-                HStack {
-                    Image(systemName: "plus.circle")
-                        .font(.system(size: 12))
-                    Text("Generate JWT")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill((customClaims.isEmpty || (selectedAlgorithm.requiresSecret && secretKey.isEmpty)) ? Color.accentColor.opacity(0.3) : Color.accentColor)
-                )
-                .foregroundColor(.white)
+                Text("Generate JWT")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.return, modifiers: .command)
             .disabled(customClaims.isEmpty || (selectedAlgorithm.requiresSecret && secretKey.isEmpty))
             .padding(.horizontal, 16)
-            
+
             // Generated Token Output
             if !generatedToken.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
                         Text("Generated JWT")
-                            .font(.system(size: 12, weight: .semibold))
-                        
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+
                         Spacer()
-                        
+
                         Button(action: {
                             copyToClipboard(generatedToken)
                         }) {
@@ -372,32 +354,16 @@ struct JWTView: View {
                         .foregroundColor(.accentColor)
                         .help("Copy to clipboard")
                     }
-                    
-                    ZStack(alignment: .topLeading) {
-                        UndoableTextEditor(text: .constant(generatedToken))
-                            .frame(maxWidth: .infinity)
-                            .frame(minHeight: 120, maxHeight: 140)
-                        
-                        if generatedToken.isEmpty {
-                            Text("Generated JWT will appear here...")
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundColor(Color.secondary.opacity(0.4))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .allowsHitTesting(false)
-                        }
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(NSColor.controlBackgroundColor))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(Color.green.opacity(0.4), lineWidth: 1)
-                            )
-                    )
+                    .padding(.horizontal, 16)
+
+                    UndoableTextEditor(text: .constant(generatedToken))
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 120, maxHeight: 140)
+                        .background(fieldContainer())
+                        .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
-            
+
             // Error display
             if !errorMessage.isEmpty {
                 HStack(spacing: 6) {
@@ -417,7 +383,6 @@ struct JWTView: View {
                         .fill(Color.red.opacity(0.1))
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
             }
         }
     }
@@ -426,27 +391,24 @@ struct JWTView: View {
     private var verifyView: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Token Input
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("JWT Token")
-                        .font(.system(size: 12, weight: .semibold))
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     Button(action: pasteFromClipboard) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Paste from clipboard (⌘V)")
                 }
                 .padding(.horizontal, 16)
-                
+
                 ZStack(alignment: .topLeading) {
                     UndoableTextEditor(text: $inputToken) { newText in
                         if selectedMode == .verify && !secretKey.isEmpty {
@@ -455,80 +417,71 @@ struct JWTView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 100, maxHeight: 120)
-                    
+
                     if inputToken.isEmpty {
-                        Text("Paste your JWT token here...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Text("Paste your JWT token here")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
-                        )
-                )
+                .background(fieldContainer(error: !errorMessage.isEmpty))
                 .padding(.horizontal, 16)
             }
-            
+
             // Secret Key
             VStack(alignment: .leading, spacing: 8) {
                 Text("Secret Key")
-                    .font(.system(size: 12, weight: .semibold))
-                
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+
                 SecureField("Enter secret key for verification", text: $secretKey)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12, design: .monospaced))
                     .focused($isSecretFocused)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.caption, design: .monospaced))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(fieldContainer())
             }
             .padding(.horizontal, 16)
-            
+
             // Verify Button
             Button(action: verifyJWTSignature) {
-                HStack {
-                    Image(systemName: "checkmark.shield")
-                        .font(.system(size: 12))
-                    Text("Verify Signature")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill((inputToken.isEmpty || secretKey.isEmpty) ? Color.accentColor.opacity(0.3) : Color.accentColor)
-                )
-                .foregroundColor(.white)
+                Text("Verify Signature")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.return, modifiers: .command)
             .disabled(inputToken.isEmpty || secretKey.isEmpty)
             .padding(.horizontal, 16)
-            
-            // Verification Result
+
+            // Verification Result — semantic green/red banner
             if !signatureStatus.isEmpty {
-                HStack {
+                HStack(spacing: 6) {
                     Image(systemName: signatureStatus.contains("Valid") ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.system(size: 12))
                         .foregroundColor(signatureStatus.contains("Valid") ? .green : .red)
                     Text(signatureStatus)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(signatureStatus.contains("Valid") ? .green : .red)
+                    Spacer()
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background((signatureStatus.contains("Valid") ? Color.green : Color.red).opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill((signatureStatus.contains("Valid") ? Color.green : Color.red).opacity(0.1))
+                )
                 .padding(.horizontal, 16)
             }
-            
+
             // Claims display for verification mode
             if let claims = claims {
                 claimsSection(claims)
                     .padding(.horizontal, 16)
             }
-            
+
             // Error display
             if !errorMessage.isEmpty {
                 HStack(spacing: 6) {
@@ -548,7 +501,6 @@ struct JWTView: View {
                         .fill(Color.red.opacity(0.1))
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
             }
         }
     }
@@ -556,12 +508,13 @@ struct JWTView: View {
     // MARK: - UI Components
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(spacing: 10) {
                 Text("Header")
-                    .font(.system(size: 12, weight: .semibold))
-                
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard(headerJSON)
                 }) {
@@ -576,26 +529,27 @@ struct JWTView: View {
                 .foregroundColor(.accentColor)
                 .help("Copy to clipboard")
             }
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(headerJSON)
                     .font(.system(size: 12, design: .monospaced))
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color(NSColor.controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(fieldContainer())
         }
     }
-    
+
     private var payloadSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(spacing: 10) {
                 Text("Payload")
-                    .font(.system(size: 12, weight: .semibold))
-                
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard(payloadJSON)
                 }) {
@@ -610,59 +564,37 @@ struct JWTView: View {
                 .foregroundColor(.accentColor)
                 .help("Copy to clipboard")
             }
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(payloadJSON)
                     .font(.system(size: 12, design: .monospaced))
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color(NSColor.controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(fieldContainer())
         }
     }
     
     private func claimsSection(_ claims: JWTClaims) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
                 Text("Claims")
-                    .font(.system(size: 12, weight: .semibold))
-                
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+
                 Spacer()
-                
+
                 // Toggle between human-readable and JSON view
-                HStack(spacing: 4) {
-                    Button(action: {
-                        showClaimsAsJSON = false
-                    }) {
-                        Text("Readable")
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(!showClaimsAsJSON ? Color.accentColor : Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(!showClaimsAsJSON ? .white : .primary)
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Button(action: {
-                        showClaimsAsJSON = true
-                    }) {
-                        Text("JSON")
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(showClaimsAsJSON ? Color.accentColor : Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(showClaimsAsJSON ? .white : .primary)
-                    }
-                    .buttonStyle(.plain)
+                Picker("Claims view", selection: $showClaimsAsJSON) {
+                    Text("Readable").tag(false)
+                    Text("JSON").tag(true)
                 }
-                
+                .pickerStyle(.segmented)
+                .controlSize(.small)
+                .labelsHidden()
+                .fixedSize()
+
                 if showClaimsAsJSON {
                     Button(action: {
                         copyToClipboard(payloadJSON)
@@ -679,7 +611,7 @@ struct JWTView: View {
                     .help("Copy JSON to clipboard")
                 }
             }
-            
+
             if showClaimsAsJSON {
                 // JSON view
                 ScrollView {
@@ -690,8 +622,8 @@ struct JWTView: View {
                         .textSelection(.enabled)
                 }
                 .frame(maxHeight: 200)
-                .background(Color(NSColor.controlBackgroundColor))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                .background(fieldContainer())
             } else {
                 // Human-readable view
                 VStack(alignment: .leading, spacing: 8) {
@@ -717,14 +649,14 @@ struct JWTView: View {
                     if let jti = claims.jwtID {
                         ClaimRow(label: "JWT ID (jti)", value: jti, type: .text)
                     }
-                    
+
                     // Custom claims
                     if !claims.customClaims.isEmpty {
                         Text("Custom Claims")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.secondary)
                             .padding(.top, 8)
-                        
+
                         ForEach(Array(claims.customClaims.keys.sorted()), id: \.self) { key in
                             if !["iss", "sub", "aud", "exp", "nbf", "iat", "jti"].contains(key) {
                                 ClaimRow(label: key, value: "\(claims.customClaims[key] ?? "")", type: .text)
@@ -733,8 +665,8 @@ struct JWTView: View {
                     }
                 }
                 .padding(12)
-                .background(Color(NSColor.controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(fieldContainer())
             }
         }
     }
@@ -742,33 +674,29 @@ struct JWTView: View {
     private var signatureSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Signature")
-                .font(.system(size: 12, weight: .semibold))
-            
-            HStack {
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 10) {
                 Text("Signature verification requires the secret key")
-                    .font(.caption)
+                    .font(.system(size: 11))
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
-                
+
+                // Switching mode; resetOutputs() runs via onChange(of: selectedMode)
                 Button(action: {
                     selectedMode = .verify
-                    resetOutputs()
                 }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 11))
-                        Text("Go to Verify Tab")
-                            .font(.system(size: 11, weight: .medium))
-                    }
+                    Text("Go to Verify Tab")
+                        .font(.system(size: 11, weight: .medium))
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.accentColor)
                 .help("Switch to Verify mode")
             }
-            .padding(8)
-            .background(Color.blue.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .padding(12)
+            .background(fieldContainer())
         }
     }
     
@@ -1101,32 +1029,6 @@ struct JWTView: View {
 }
 
 // MARK: - Supporting Views and Types
-
-struct JWTModeTabButton: View {
-    let title: String
-    let icon: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 12, weight: .medium))
-                Text(title)
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.1))
-            )
-            .foregroundColor(isSelected ? .white : .primary)
-        }
-        .buttonStyle(.plain)
-    }
-}
 
 struct ClaimRow: View {
     let label: String
