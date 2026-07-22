@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1440px; height: 900px; overflow: hidden; }
+  html { background: #06080e; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: radial-gradient(1200px 800px at 80% 20%, #131a2e 0%, #0a0d16 55%, #06080e 100%);
+    display: flex; align-items: center;
+    color: #fff;
+  }
+  .left { padding-left: 90px; width: 680px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(90, 140, 255, 0.45); color: #7ba4ff;
+    background: rgba(60, 110, 255, 0.08);
+    font-size: 13px; font-weight: 600; letter-spacing: 2.5px;
+    padding: 9px 18px; border-radius: 999px; margin-bottom: 34px;
+  }
+  h1 { font-size: 72px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 22px; }
+  h1 .accent { color: #6ea8ff; }
+  .sub { font-size: 21px; color: #9aa3b5; font-weight: 400; margin-bottom: 44px; }
+  .cols { display: flex; gap: 70px; }
+  .cols ul { list-style: none; }
+  .cols li {
+    font-size: 18px; color: #d5dae5; margin-bottom: 19px;
+    display: flex; align-items: center; gap: 12px; font-weight: 500;
+  }
+  .cols li::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: #5f9bff; flex: none;
+  }
+  .right { flex: 1; display: flex; justify-content: center; }
+  .frame {
+    padding: 3px; border-radius: 28px;
+    background: linear-gradient(140deg, #4d8dff, #8b5cf6 70%, #b465f0);
+    box-shadow: 0 40px 90px rgba(0,0,0,0.65), 0 0 120px rgba(90, 120, 255, 0.18);
+  }
+  .frame .inner { background: #0c0e14; border-radius: 25px; padding: 14px; }
+  .frame img { width: 400px; display: block; border-radius: 16px; }
+</style></head><body>
+  <div class="left">
+    <div class="badge">≡&nbsp; MENU BAR APP</div>
+    <h1>Zen Dev <span class="accent">Toolkit</span></h1>
+    <div class="sub">Lightning-fast developer utilities, always one click away</div>
+    <div class="cols">
+      <ul>
+        <li>JSON Formatter</li>
+        <li>Base64 Encoder</li>
+        <li>URL Encoder</li>
+        <li>Timestamp Converter</li>
+      </ul>
+      <ul>
+        <li>JWT Decoder</li>
+        <li>Hash Generator</li>
+        <li>UUID v4 + v7</li>
+        <li>100% Offline</li>
+      </ul>
+    </div>
+  </div>
+  <div class="right">
+    <div class="frame"><div class="inner"><img src="panel-hash-dark.png"></div></div>
+  </div>
+</body></html>

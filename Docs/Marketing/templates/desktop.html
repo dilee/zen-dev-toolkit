@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1440px; height: 900px; overflow: hidden; }
+  html { background: url("wallpaper.jpg") center/cover no-repeat #1a1c24; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: url("wallpaper.jpg") center/cover no-repeat;
+  }
+  .menubar {
+    height: 32px; width: 100%;
+    background: rgba(20, 22, 30, 0.55);
+    backdrop-filter: blur(30px);
+    display: flex; align-items: center;
+    padding: 0 16px; gap: 22px;
+    color: rgba(255,255,255,0.92); font-size: 13.5px; font-weight: 500;
+  }
+  .menubar .apple { font-size: 15px; }
+  .menubar .app { font-weight: 700; }
+  .menubar .spacer { flex: 1; }
+  .panel {
+    position: absolute; top: 40px; right: 120px;
+    width: 420px; border-radius: 10px;
+    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.55);
+  }
+</style></head><body>
+  <div class="menubar">
+    <span class="apple"></span>
+    <span class="app">Finder</span>
+    <span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    <span class="spacer"></span>
+    <span>Wed 22 Jul&nbsp;&nbsp;20:51</span>
+  </div>
+  <img class="panel" src="panel-hash-dark.png">
+</body></html>

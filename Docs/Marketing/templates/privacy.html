@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1440px; height: 900px; overflow: hidden; }
+  html { background: #000; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: #000;
+    display: flex; align-items: center; color: #fff;
+  }
+  .panelwrap { width: 640px; display: flex; justify-content: center; }
+  .device {
+    background: #17181c; border-radius: 30px; padding: 16px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.9);
+  }
+  .device img { width: 400px; display: block; border-radius: 16px; }
+  .copy { flex: 1; padding-right: 120px; }
+  .badge {
+    display: inline-block;
+    border: 1px solid rgba(52, 211, 153, 0.5); color: #34d399;
+    background: rgba(52, 211, 153, 0.07);
+    font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    padding: 9px 18px; border-radius: 999px; margin-bottom: 30px;
+  }
+  h1 { font-size: 62px; font-weight: 800; letter-spacing: -1px; line-height: 1.08; margin-bottom: 24px; }
+  .sub { font-size: 21px; color: #98a1b3; line-height: 1.5; margin-bottom: 42px; max-width: 560px; }
+  .checks { list-style: none; }
+  .checks li {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 19px; color: #e6e9ef; margin-bottom: 22px; font-weight: 500;
+  }
+  .tick {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: #10b981; display: flex; align-items: center; justify-content: center;
+    color: #04241a; font-size: 15px; font-weight: 800;
+  }
+</style></head><body>
+  <div class="panelwrap">
+    <div class="device"><img src="panel-jwt-dark.png"></div>
+  </div>
+  <div class="copy">
+    <div class="badge">100% OFFLINE&nbsp;•&nbsp;100% PRIVATE</div>
+    <h1>Your Data Never<br>Leaves Your Mac</h1>
+    <div class="sub">Built for developers who value privacy and performance. No internet required. No tracking. No subscriptions.</div>
+    <ul class="checks">
+      <li><span class="tick">✓</span>Lightning-fast performance – launches in under 1 second</li>
+      <li><span class="tick">✓</span>Global hotkey – summon your tools from anywhere</li>
+      <li><span class="tick">✓</span>Native macOS app with full dark mode support</li>
+      <li><span class="tick">✓</span>One-time purchase – no hidden costs</li>
+    </ul>
+  </div>
+</body></html>

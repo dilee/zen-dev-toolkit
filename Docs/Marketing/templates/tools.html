@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1440px; height: 900px; overflow: hidden; }
+  html { background: #05070c; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: radial-gradient(1100px 700px at 50% -10%, #10182b 0%, #070a12 60%, #05070c 100%);
+    color: #fff;
+  }
+  .head { text-align: center; padding-top: 56px; margin-bottom: 40px; }
+  .head h1 { font-size: 54px; font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .head .sub { font-size: 20px; color: #939cb0; }
+  .content { display: flex; align-items: center; padding: 0 70px; gap: 40px; }
+  .cards { width: 560px; display: flex; flex-direction: column; gap: 13px; }
+  .card {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(23, 30, 48, 0.55);
+    border: 1px solid rgba(96, 118, 165, 0.18);
+    border-radius: 14px; padding: 13px 18px;
+  }
+  .icon {
+    width: 42px; height: 42px; border-radius: 11px; flex: none;
+    background: linear-gradient(135deg, #4f7dff, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff; letter-spacing: 0.5px;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  }
+  .card h3 { font-size: 17.5px; font-weight: 700; margin-bottom: 3px; }
+  .card p { font-size: 13.5px; color: #96a0b4; }
+  .showcase { flex: 1; display: flex; justify-content: center; align-items: center; perspective: 2000px; height: 620px; padding-right: 30px; }
+  .showcase img { border-radius: 12px; box-shadow: 0 30px 70px rgba(0,0,0,0.75); }
+  .p1 { width: 225px; transform: rotateY(28deg) translateX(52px) scale(0.96); z-index: 1; }
+  .p2 { width: 285px; z-index: 2; box-shadow: 0 40px 90px rgba(0,0,0,0.85) !important; }
+  .p3 { width: 225px; transform: rotateY(-28deg) translateX(-52px) scale(0.96); z-index: 1; }
+</style></head><body>
+  <div class="head">
+    <h1>Seven Essential Developer Tools</h1>
+    <div class="sub">Everything you need, instantly accessible from your menu bar</div>
+  </div>
+  <div class="content">
+    <div class="cards">
+      <div class="card"><div class="icon">{ }</div><div><h3>JSON Formatter</h3><p>Format, minify, validate, and query with JSONPath</p></div></div>
+      <div class="card"><div class="icon">JWT</div><div><h3>JWT Token Tool</h3><p>Decode, verify signatures, and generate tokens</p></div></div>
+      <div class="card"><div class="icon">64</div><div><h3>Base64 Encoder</h3><p>Encode text, files, and images with instant preview</p></div></div>
+      <div class="card"><div class="icon">#</div><div><h3>Hash Generator</h3><p>MD5, SHA-1, SHA-256, SHA-512 with HMAC support</p></div></div>
+      <div class="card"><div class="icon">%</div><div><h3>URL Encoder</h3><p>Full percent-encoding with component handling</p></div></div>
+      <div class="card"><div class="icon">ID</div><div><h3>UUID Generator</h3><p>Create v4 and time-ordered v7 UUIDs</p></div></div>
+      <div class="card"><div class="icon">TS</div><div><h3>Timestamp Converter</h3><p>Convert Unix timestamps with timezone support</p></div></div>
+    </div>
+    <div class="showcase">
+      <img class="p1" src="panel-base64-dark.png">
+      <img class="p2" src="panel-json-dark.png">
+      <img class="p3" src="panel-url-dark.png">
+    </div>
+  </div>
+</body></html>

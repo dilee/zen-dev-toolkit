@@ -380,9 +380,12 @@ struct HashGeneratorView: View {
     // Populates realistic content for marketing captures (`-DemoContent 1`).
     private func seedDemoContentIfRequested() {
         guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        isHMAC = true
+        secretKey = "my-secret-key"
         inputText = "The quick brown fox jumps over the lazy dog"
         updateCharacterCount()
         generateHash()
+        compareHash = hashOutput
     }
     #endif
 
