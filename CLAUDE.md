@@ -252,10 +252,12 @@ xcodebuild -exportArchive \
 - For regular development: Use the default `ZenDevToolkit` scheme (auto-updater enabled)
 - For App Store testing: Use the `ZenDevToolkit` scheme with `Debug-AppStore` configuration
 
-1. **Update Version Numbers** (3 places):
+1. **Update Version Numbers** (4 places):
    - `ZenDevToolkit/Info.plist`: Update both `CFBundleShortVersionString` (e.g., "1.0.1") and `CFBundleVersion` (e.g., "101")
-   - `ZenDevToolkit.xcodeproj/project.pbxproj`: Update `MARKETING_VERSION` (this overrides Info.plist!)
-     - Search for `MARKETING_VERSION = "x.x.x";` and update ALL occurrences (usually 6)
+   - `ZenDevToolkit.xcodeproj/project.pbxproj`: Update `MARKETING_VERSION` (this overrides Info.plist's `CFBundleShortVersionString`!)
+     - Search for `MARKETING_VERSION = x.x.x;` and update ALL occurrences
+   - `ZenDevToolkit.xcodeproj/project.pbxproj`: Update `CURRENT_PROJECT_VERSION` (this overrides Info.plist's `CFBundleVersion`! App Store validation rejects uploads whose build number doesn't increase)
+     - Search for `CURRENT_PROJECT_VERSION = n;` and update ALL occurrences
    - `README.md`: Update the version badge
 
 2. **Update Documentation**:
@@ -288,7 +290,7 @@ xcodebuild -exportArchive \
    - Link to the full changelog
 
 ### Important Notes
-- **MARKETING_VERSION in project.pbxproj overrides Info.plist** - Always update both!
+- **MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.pbxproj override Info.plist** - Always update all of them!
 - Only create the tag after all version updates are committed
 - Use semantic versioning (MAJOR.MINOR.PATCH)
 - The CI/CD pipeline triggers on tags starting with 'v'
