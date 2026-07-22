@@ -17,37 +17,20 @@ struct URLEncoderView: View {
     @State private var outputCharCount = 0
     @State private var parsedParams: [(key: String, value: String)] = []
     @State private var urlComponents: URLAnalysis?
-    @State private var showURLAnalysis = false
     @FocusState private var isInputFocused: Bool
-    
+
     enum URLMode: String, CaseIterable {
         case encode = "Encode"
         case decode = "Decode"
         case analyze = "Analyze"
-        
-        var icon: String {
-            switch self {
-            case .encode: return "arrow.right.square"
-            case .decode: return "arrow.left.square"
-            case .analyze: return "magnifyingglass"
-            }
-        }
     }
-    
+
     enum EncodeMode: String, CaseIterable {
         case standard = "Standard"
         case component = "Component"
         case formData = "Form Data"
-        
-        var description: String {
-            switch self {
-            case .standard: return "Full URL encoding"
-            case .component: return "URL component encoding"
-            case .formData: return "Form/query parameter encoding"
-            }
-        }
     }
-    
+
     struct URLAnalysis {
         let scheme: String?
         let host: String?
@@ -59,14 +42,14 @@ struct URLEncoderView: View {
         let password: String?
         let queryItems: [(key: String, value: String)]
         let isValid: Bool
-        
+
         var displayPort: String {
             if let port = port {
                 return ":\(port)"
             }
             return ""
         }
-        
+
         var baseURL: String {
             var result = ""
             if let scheme = scheme {
@@ -87,93 +70,73 @@ struct URLEncoderView: View {
             return result
         }
     }
-    
+
+    private var inputTitle: String {
+        switch mode {
+        case .encode: return "Text to Encode"
+        case .decode: return "URL to Decode"
+        case .analyze: return "URL to Analyze"
+        }
+    }
+
+    private var inputPlaceholder: String {
+        switch mode {
+        case .encode: return "Paste or type text/URL to encode"
+        case .decode: return "Paste encoded URL to decode"
+        case .analyze: return "Paste URL to analyze"
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Mode selector
-            VStack(spacing: 12) {
-                HStack(spacing: 8) {
+            // Mode selection
+            VStack(alignment: .leading, spacing: 10) {
+                Picker("Mode", selection: $mode) {
                     ForEach(URLMode.allCases, id: \.self) { currentMode in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                mode = currentMode
-                                if !inputText.isEmpty {
-                                    processURL()
-                                }
-                            }
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: currentMode.icon)
-                                    .font(.system(size: 12))
-                                Text(currentMode.rawValue)
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(mode == currentMode ? Color.accentColor : Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(mode == currentMode ? .white : .primary)
-                        }
-                        .buttonStyle(.plain)
+                        Text(currentMode.rawValue).tag(currentMode)
                     }
                 }
-                
-                // Encoding options (only for encode mode)
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .onChange(of: mode) {
+                    if !inputText.isEmpty {
+                        processURL()
+                    }
+                }
+
+                // Encoding sub-mode (only for encode mode)
                 if mode == .encode {
-                    HStack(spacing: 12) {
+                    Picker("Encoding", selection: $encodeMode) {
                         ForEach(EncodeMode.allCases, id: \.self) { currentEncodeMode in
-                            Button(action: {
-                                encodeMode = currentEncodeMode
-                                if !inputText.isEmpty {
-                                    processURL()
-                                }
-                            }) {
-                                VStack(spacing: 4) {
-                                    Text(currentEncodeMode.rawValue)
-                                        .font(.system(size: 10, weight: .medium))
-                                    Text(currentEncodeMode.description)
-                                        .font(.system(size: 8))
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(2)
-                                        .multilineTextAlignment(.center)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 42)
-                                .padding(.horizontal, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(encodeMode == currentEncodeMode ? 
-                                              Color.blue.opacity(0.2) : Color.secondary.opacity(0.05))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 6)
-                                                .strokeBorder(
-                                                    encodeMode == currentEncodeMode ? 
-                                                    Color.blue.opacity(0.5) : Color.clear,
-                                                    lineWidth: 1
-                                                )
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
+                            Text(currentEncodeMode.rawValue).tag(currentEncodeMode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .fixedSize()
+                    .onChange(of: encodeMode) {
+                        if !inputText.isEmpty {
+                            processURL()
                         }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
-            
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
             // Input section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(mode == .encode ? "Text to Encode" : (mode == .decode ? "URL to Decode" : "URL to Analyze"))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    Text(inputTitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     if !inputText.isEmpty {
                         Text("\(characterCount) chars")
                             .font(.system(size: 10, weight: .medium))
@@ -182,21 +145,26 @@ struct URLEncoderView: View {
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.secondary.opacity(0.1)))
                     }
-                    
+
                     Button(action: pasteFromClipboard) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
-                    .help("Paste from clipboard (⌘V)")
+                    .foregroundColor(.secondary)
+                    .help("Paste from clipboard")
+
+                    Button(action: clearAll) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .disabled(inputText.isEmpty && outputText.isEmpty)
+                    .help("Clear all")
                 }
                 .padding(.horizontal, 16)
-                
+
                 ZStack(alignment: .topLeading) {
                     UndoableTextEditor(text: $inputText) { newText in
                         updateCharacterCount()
@@ -207,28 +175,27 @@ struct URLEncoderView: View {
                             outputCharCount = 0
                             parsedParams = []
                             urlComponents = nil
+                            clearError()
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
+
                     if inputText.isEmpty {
-                        Text(mode == .encode ? 
-                             "Paste or type text/URL to encode..." : 
-                             (mode == .decode ? "Paste encoded URL to decode..." : "Paste URL to analyze..."))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .multilineTextAlignment(.center)
+                        Text(inputPlaceholder)
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(
-                                    errorMessage.isEmpty ? Color.secondary.opacity(0.2) : Color.red.opacity(0.5),
+                                    errorMessage.isEmpty ? Color.secondary.opacity(0.15) : Color.red.opacity(0.5),
                                     lineWidth: 1
                                 )
                         )
@@ -236,7 +203,7 @@ struct URLEncoderView: View {
                 .frame(minHeight: 100, idealHeight: 120, maxHeight: 150)
                 .padding(.horizontal, 16)
             }
-            
+
             // Error message
             if !errorMessage.isEmpty {
                 HStack(spacing: 6) {
@@ -258,114 +225,28 @@ struct URLEncoderView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
             }
-            
-            // Action buttons
-            HStack(spacing: 10) {
-                Button(action: processURL) {
-                    HStack {
-                        Image(systemName: mode.icon)
-                            .font(.system(size: 12))
-                        Text(mode.rawValue)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(inputText.isEmpty ? Color.accentColor.opacity(0.3) : Color.accentColor)
-                    )
-                    .foregroundColor(.white)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty)
-                .keyboardShortcut(.return, modifiers: .command)
-                
-                if mode != .analyze {
-                    Button(action: swapInputOutput) {
-                        HStack {
-                            Image(systemName: "arrow.up.arrow.down")
-                                .font(.system(size: 12))
-                            Text("Swap")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.15))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                        .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(outputText.isEmpty)
-                    .help("Swap input and output")
-                }
-                
-                if !parsedParams.isEmpty && mode == .analyze {
-                    Button(action: buildURLFromParams) {
-                        HStack {
-                            Image(systemName: "hammer")
-                                .font(.system(size: 12))
-                            Text("Build")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.15))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                        .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Build URL from parameters")
-                }
-                
-                Button(action: clearAll) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 12))
-                        .frame(width: 32, height: 32)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty && outputText.isEmpty)
-                .help("Clear all")
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
+
             // Output section
             if mode == .analyze && urlComponents != nil {
                 // URL Analysis View
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         // URL Components
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 10) {
                                 Text("URL Components")
-                                    .font(.system(size: 12, weight: .semibold))
-                                
-                                Spacer()
-                                
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.secondary)
+
                                 if urlComponents?.isValid == true {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.system(size: 11))
                                         .foregroundColor(.green)
                                         .symbolRenderingMode(.hierarchical)
                                 }
-                                
+
+                                Spacer()
+
                                 Button(action: copyComponentsToClipboard) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "doc.on.doc")
@@ -376,8 +257,9 @@ struct URLEncoderView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .foregroundColor(.accentColor)
+                                .help("Copy components to clipboard")
                             }
-                            
+
                             VStack(alignment: .leading, spacing: 8) {
                                 if let scheme = urlComponents?.scheme {
                                     ComponentRow(label: "Scheme", value: scheme, color: .blue)
@@ -405,19 +287,31 @@ struct URLEncoderView: View {
                             .padding(12)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(NSColor.controlBackgroundColor))
+                                    .fill(Color.primary.opacity(0.04))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
+                                    )
                             )
                         }
-                        
+
                         // Query Parameters
                         if !parsedParams.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 10) {
                                     Text("Query Parameters (\(parsedParams.count))")
-                                        .font(.system(size: 12, weight: .semibold))
-                                    
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.secondary)
+
                                     Spacer()
-                                    
+
+                                    Button(action: buildURLFromParams) {
+                                        Label("Build", systemImage: "hammer")
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                    .help("Build URL from parameters")
+
                                     Button(action: copyParamsAsJSON) {
                                         HStack(spacing: 4) {
                                             Image(systemName: "doc.on.doc")
@@ -430,37 +324,37 @@ struct URLEncoderView: View {
                                     .foregroundColor(.accentColor)
                                     .help("Copy query parameters as JSON object")
                                 }
-                                
-                                VStack(spacing: 4) {
+
+                                VStack(spacing: 0) {
                                     ForEach(Array(parsedParams.enumerated()), id: \.offset) { index, param in
-                                        HStack {
+                                        HStack(spacing: 6) {
                                             Text(param.key)
                                                 .font(.system(size: 11, design: .monospaced))
                                                 .foregroundColor(.blue)
                                                 .textSelection(.enabled)
-                                            
+
                                             Text("=")
                                                 .font(.system(size: 11, design: .monospaced))
                                                 .foregroundColor(.secondary)
-                                            
+
                                             Text(param.value)
                                                 .font(.system(size: 11, design: .monospaced))
                                                 .foregroundColor(.primary)
                                                 .textSelection(.enabled)
                                                 .lineLimit(1)
-                                            
+
                                             Spacer()
                                         }
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 6)
-                                                .fill(index % 2 == 0 ? 
-                                                      Color(NSColor.controlBackgroundColor) : 
-                                                      Color.secondary.opacity(0.05))
-                                        )
+                                        .background(index % 2 == 0 ? Color.primary.opacity(0.04) : Color.clear)
                                     }
                                 }
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
+                                )
                             }
                         }
                     }
@@ -470,21 +364,26 @@ struct URLEncoderView: View {
                 .frame(maxHeight: .infinity)
             } else {
                 // Regular output section
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
                         Text(mode == .encode ? "Encoded URL" : "Decoded Text")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.primary)
-                        
-                        if !outputText.isEmpty {
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+
+                        if !errorMessage.isEmpty && outputText.isEmpty {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.red)
+                                .symbolRenderingMode(.hierarchical)
+                        } else if !outputText.isEmpty {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 11))
                                 .foregroundColor(.green)
                                 .symbolRenderingMode(.hierarchical)
                         }
-                        
+
                         Spacer()
-                        
+
                         if !outputText.isEmpty {
                             Text("\(outputCharCount) chars")
                                 .font(.system(size: 10, weight: .medium))
@@ -492,7 +391,7 @@ struct URLEncoderView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                                 .background(Capsule().fill(Color.secondary.opacity(0.1)))
-                            
+
                             Button(action: copyToClipboard) {
                                 HStack(spacing: 4) {
                                     Image(systemName: "doc.on.doc")
@@ -504,33 +403,43 @@ struct URLEncoderView: View {
                             .buttonStyle(.plain)
                             .foregroundColor(.accentColor)
                             .help("Copy to clipboard (⌘C)")
+
+                            Button(action: swapInputOutput) {
+                                Image(systemName: "arrow.up.arrow.down")
+                                    .font(.system(size: 12))
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.secondary)
+                            .disabled(outputText.isEmpty)
+                            .help("Swap input and output")
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 12)
-                    
+
                     ZStack(alignment: .topLeading) {
                         UndoableTextEditor(text: $outputText)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        
+
                         if outputText.isEmpty {
-                            Text(mode == .encode ? 
-                                 "Encoded URL will appear here..." : 
-                                 "Decoded text will appear here...")
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundColor(Color.secondary.opacity(0.4))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .multilineTextAlignment(.center)
+                            Text(mode == .encode ?
+                                 "Encoded URL will appear here" :
+                                 "Decoded text will appear here")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color.secondary.opacity(0.5))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
                                 .allowsHitTesting(false)
                         }
                     }
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(NSColor.controlBackgroundColor))
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.primary.opacity(0.04))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: 8)
                                     .strokeBorder(
-                                        !outputText.isEmpty ? Color.green.opacity(0.4) : Color.secondary.opacity(0.2),
+                                        !errorMessage.isEmpty && outputText.isEmpty ?
+                                        Color.red.opacity(0.4) : Color.secondary.opacity(0.15),
                                         lineWidth: 1
                                     )
                             )
@@ -542,17 +451,30 @@ struct URLEncoderView: View {
                 .frame(maxHeight: .infinity)
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
-    
+
     // MARK: - Actions
-    
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        mode = .analyze
+        inputText = "https://api.github.com/search/repositories?q=menu+bar+toolkit&language=swift&sort=stars&order=desc&page=1#results"
+        updateCharacterCount()
+        processURL()
+    }
+    #endif
+
     private func processURL() {
         clearError()
-        
+
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             outputText = ""
             outputCharCount = 0
@@ -560,7 +482,7 @@ struct URLEncoderView: View {
             urlComponents = nil
             return
         }
-        
+
         switch mode {
         case .encode:
             encodeURL()
@@ -570,10 +492,10 @@ struct URLEncoderView: View {
             analyzeURL()
         }
     }
-    
+
     private func encodeURL() {
         let trimmedInput = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         switch encodeMode {
         case .standard:
             // Full URL encoding
@@ -583,7 +505,7 @@ struct URLEncoderView: View {
             } else {
                 showError("Unable to encode URL")
             }
-            
+
         case .component:
             // Component encoding (more aggressive)
             let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
@@ -593,7 +515,7 @@ struct URLEncoderView: View {
             } else {
                 showError("Unable to encode component")
             }
-            
+
         case .formData:
             // Form data encoding (space becomes +)
             let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "*-._"))
@@ -606,13 +528,13 @@ struct URLEncoderView: View {
             }
         }
     }
-    
+
     private func decodeURL() {
         let trimmedInput = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // Handle form data (+ to space) first
         let preprocessed = trimmedInput.replacingOccurrences(of: "+", with: " ")
-        
+
         if let decoded = preprocessed.removingPercentEncoding {
             outputText = decoded
             outputCharCount = decoded.count
@@ -620,22 +542,22 @@ struct URLEncoderView: View {
             showError("Invalid URL encoding")
         }
     }
-    
+
     private func analyzeURL() {
         let trimmedInput = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         guard let url = URL(string: trimmedInput) else {
             showError("Invalid URL format")
             return
         }
-        
+
         var queryItems: [(key: String, value: String)] = []
-        
+
         if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
             if let items = components.queryItems {
                 queryItems = items.map { ($0.name, $0.value ?? "") }
             }
-            
+
             urlComponents = URLAnalysis(
                 scheme: components.scheme,
                 host: components.host,
@@ -648,12 +570,12 @@ struct URLEncoderView: View {
                 queryItems: queryItems,
                 isValid: true
             )
-            
+
             parsedParams = queryItems
-            
+
             // Create formatted output
             var analysisOutput = "URL Analysis:\n\n"
-            
+
             if let scheme = components.scheme {
                 analysisOutput += "Scheme: \(scheme)\n"
             }
@@ -664,30 +586,30 @@ struct URLEncoderView: View {
                 analysisOutput += "Port: \(port)\n"
             }
             analysisOutput += "Path: \(components.path.isEmpty ? "/" : components.path)\n"
-            
+
             if !queryItems.isEmpty {
                 analysisOutput += "\nQuery Parameters:\n"
                 for item in queryItems {
                     analysisOutput += "  \(item.key) = \(item.value)\n"
                 }
             }
-            
+
             if let fragment = components.fragment {
                 analysisOutput += "\nFragment: \(fragment)\n"
             }
-            
+
             outputText = analysisOutput
             outputCharCount = analysisOutput.count
         } else {
             showError("Unable to parse URL")
         }
     }
-    
+
     private func buildURLFromParams() {
         guard let components = urlComponents else { return }
-        
+
         var urlString = components.baseURL
-        
+
         if !parsedParams.isEmpty {
             let queryString = parsedParams
                 .map { key, value in
@@ -696,35 +618,35 @@ struct URLEncoderView: View {
                     return "\(encodedKey)=\(encodedValue)"
                 }
                 .joined(separator: "&")
-            
+
             urlString += "?" + queryString
         }
-        
+
         if let fragment = components.fragment {
             urlString += "#" + fragment
         }
-        
+
         outputText = urlString
         outputCharCount = urlString.count
     }
-    
+
     private func swapInputOutput() {
         let temp = inputText
         inputText = outputText
         outputText = temp
-        
+
         // Toggle mode
         mode = (mode == .encode) ? .decode : .encode
-        
+
         // Clear error and update counts
         clearError()
         updateCharacterCount()
         outputCharCount = outputText.count
     }
-    
+
     private func copyComponentsToClipboard() {
         guard let components = urlComponents else { return }
-        
+
         var text = "URL Components:\n"
         if let scheme = components.scheme {
             text += "Scheme: \(scheme)\n"
@@ -742,16 +664,16 @@ struct URLEncoderView: View {
         if let fragment = components.fragment {
             text += "Fragment: \(fragment)\n"
         }
-        
+
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
     }
-    
+
     private func copyParamsAsJSON() {
         // Group parameters by key to handle duplicates (like array parameters)
         var groupedParams: [String: Any] = [:]
-        
+
         for (key, value) in parsedParams {
             if let existingValue = groupedParams[key] {
                 // Key already exists, convert to array or append to existing array
@@ -771,7 +693,7 @@ struct URLEncoderView: View {
                 }
             }
         }
-        
+
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: groupedParams, options: [.prettyPrinted, .sortedKeys])
             if let jsonString = String(data: jsonData, encoding: .utf8) {
@@ -783,7 +705,7 @@ struct URLEncoderView: View {
             showError("Unable to convert to JSON")
         }
     }
-    
+
     private func clearAll() {
         inputText = ""
         outputText = ""
@@ -793,7 +715,7 @@ struct URLEncoderView: View {
         urlComponents = nil
         clearError()
     }
-    
+
     private func pasteFromClipboard() {
         let pasteboard = NSPasteboard.general
         if let string = pasteboard.string(forType: .string) {
@@ -802,13 +724,13 @@ struct URLEncoderView: View {
             processURL()
         }
     }
-    
+
     private func copyToClipboard() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(outputText, forType: .string)
     }
-    
+
     private func showError(_ message: String) {
         errorMessage = message
         outputText = ""
@@ -816,11 +738,11 @@ struct URLEncoderView: View {
         parsedParams = []
         urlComponents = nil
     }
-    
+
     private func clearError() {
         errorMessage = ""
     }
-    
+
     private func updateCharacterCount() {
         characterCount = inputText.count
     }
@@ -830,20 +752,20 @@ struct ComponentRow: View {
     let label: String
     let value: String
     let color: Color
-    
+
     var body: some View {
         HStack {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.secondary)
                 .frame(width: 80, alignment: .leading)
-            
+
             Text(value)
                 .font(.system(size: 11, design: .monospaced))
                 .foregroundColor(color)
                 .textSelection(.enabled)
                 .lineLimit(1)
-            
+
             Spacer()
         }
     }

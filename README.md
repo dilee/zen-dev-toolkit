@@ -19,7 +19,7 @@ A lightweight macOS menu bar application that provides developers with quick acc
 ![Platform](https://img.shields.io/badge/platform-macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.6-brightgreen)
+![Version](https://img.shields.io/badge/version-1.1.0-brightgreen)
 
 ## 🚀 Features
 
@@ -41,9 +41,11 @@ A lightweight macOS menu bar application that provides developers with quick acc
     - Quick-access examples for common patterns
 
 - **Base64 Encoder/Decoder**
-  - Encode text to Base64 format
+  - Encode text and files to Base64 (URL-safe and line-break options)
   - Decode Base64 strings to readable text
-  - Bidirectional conversion with validation
+  - **NEW: Image preview for decoded images** — thumbnail with dimensions, copy to clipboard, or save to file
+  - **NEW: `data:image/...;base64,` URIs decode directly** (prefix stripped automatically)
+  - Drag & drop file support
   - Copy/paste integration
 
 - **URL Encoder/Decoder**
@@ -59,7 +61,8 @@ A lightweight macOS menu bar application that provides developers with quick acc
   - Multiple hash algorithms simultaneously
 
 - **UUID Generator**
-  - Generate Version 4 UUIDs instantly
+  - Generate Version 4 (random) UUIDs instantly
+  - **NEW: Version 7 (time-ordered, RFC 9562) UUIDs** — ideal for database keys
   - Multiple format options (with/without hyphens, uppercase/lowercase)
   - Bulk generation with customizable count
   - Quick copy individual or all UUIDs
@@ -139,21 +142,24 @@ Get ZenDevToolkit directly from the Mac App Store for automatic updates and seam
 ## 💻 Usage
 
 1. **Launch the app**: Look for the toolbox icon (📦) in your menu bar
-2. **Open tools**: Left-click the menu bar icon to open the tool popover
-3. **Switch tools**: Use the segmented control at the top to switch between utilities
-4. **Access menu**: Right-click the menu bar icon for About and Quit options
+2. **Open tools**: Left-click the menu bar icon — or set a global hotkey to summon it from anywhere
+3. **Switch tools**: Use the tool buttons at the top, or press ⌘1–⌘7
+4. **Pin it**: Click the pin icon to keep the window open while you work in other apps
+5. **Access menu**: Right-click the menu bar icon for About, Launch at Login, Global Hotkey, and Quit options
 
 ### Keyboard Shortcuts
-- **⌘+C**: Copy selected text
-- **⌘+V**: Paste from clipboard
-- **⌘+A**: Select all text
-- **⌘+Return**: Format JSON (in JSON tool)
-- **Click outside**: Close the popover
+- **Global hotkey** (optional): Toggle the toolkit from anywhere — ⌃⌥Space, ⌥Space, or ⌃⌥Z, set via the right-click menu
+- **⌘1–⌘7**: Switch between tools
+- **⌘+Return**: Run the current tool's primary action (format, encode, convert...)
+- **⌘+C / ⌘+V / ⌘+A**: Copy, paste, select all
+- **⌘+Z / ⌘+⇧+Z**: Undo / redo in any text area
+- **Click outside**: Close the popover (unless pinned)
 
 ## 🎨 Features
 
 - **Modern UI**: Clean, minimal design that adapts to macOS light/dark mode
-- **Resizable Window**: Adjust the popover size (320×400 to 600×800)
+- **Always Within Reach**: Global hotkey, launch at login, and pin mode — zero friction between you and the tools
+- **Remembers Your Context**: Reopens on the tool you used last
 - **Fast & Lightweight**: Native SwiftUI app with instant response times
 - **Privacy-Focused**: All processing happens locally, no data sent to servers
 - **Pure Menu Bar App**: Runs exclusively in menu bar, won't appear in Dock for clean desktop experience

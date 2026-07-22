@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ServiceManagement
 
 @main
 struct DevToolkitApp: App {
@@ -42,7 +43,10 @@ class ToolkitPanel: NSPanel {
         
         #if DISABLE_AUTO_UPDATE
         // For App Store version: Close window when it loses key status
-        self.orderOut(nil)
+        // Unless pinned, in which case it stays open across app switches
+        if !AppState.shared.isPinned {
+            self.orderOut(nil)
+        }
         #endif
         // For Homebrew version: Keep using event monitor for better control
     }
@@ -57,7 +61,9 @@ class ToolkitPanel: NSPanel {
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var statusItem: NSStatusItem?
     private var window: NSPanel?
-    
+    private var hotkeyManager: HotkeyManager?
+    private var localKeyMonitor: Any?
+
     #if !DISABLE_AUTO_UPDATE
     private var eventMonitor: Any?
     private let updateChecker = UpdateChecker.shared
@@ -66,7 +72,61 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
         setupWindow()
-        
+        setupHotkey()
+        setupToolShortcutMonitor()
+
+        #if DEBUG
+        // Testing aids for screenshots and UI checks:
+        // `ZenDevToolkit -ShowPanelOnLaunch 1 -CapturePanel 1 -selectedTool Base64
+        //  -CaptureAppearance light -DemoContent 1`
+        if let style = UserDefaults.standard.string(forKey: "CaptureAppearance") {
+            NSApp.appearance = NSAppearance(named: style == "light" ? .aqua : .darkAqua)
+        }
+        if UserDefaults.standard.bool(forKey: "ShowPanelOnLaunch") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.showWindow()
+                if let frame = self.window?.frame, let screen = NSScreen.main {
+                    print("PANEL_FRAME \(Int(frame.origin.x)) \(Int(frame.origin.y)) \(Int(frame.width)) \(Int(frame.height)) SCREEN_H \(Int(screen.frame.height))")
+                    fflush(stdout)
+                }
+            }
+
+            // `-CapturePanel 1` additionally renders the panel to a PNG in the
+            // container temp directory (no screen-recording permission needed;
+            // behind-window material renders flat here) and quits.
+            if UserDefaults.standard.bool(forKey: "CapturePanel") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    if let view = self.window?.contentView,
+                       let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                        // Offscreen renders can't blur the desktop behind the
+                        // panel, so the material falls back to a washed-out
+                        // gray. Swap it for the opaque window background,
+                        // which matches how the panel reads in real use.
+                        func flattenMaterials(_ view: NSView) {
+                            if let effect = view as? NSVisualEffectView {
+                                effect.isHidden = true
+                            }
+                            view.subviews.forEach(flattenMaterials)
+                        }
+                        flattenMaterials(view)
+                        view.wantsLayer = true
+                        (self.window?.effectiveAppearance ?? NSApp.effectiveAppearance).performAsCurrentDrawingAppearance {
+                            view.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+                        }
+                        view.cacheDisplay(in: view.bounds, to: rep)
+                        if let data = rep.representation(using: .png, properties: [:]) {
+                            let url = FileManager.default.temporaryDirectory.appendingPathComponent("panel-capture.png")
+                            try? data.write(to: url)
+                            print("PANEL_CAPTURE \(url.path)")
+                            fflush(stdout)
+                        }
+                    }
+                    NSApp.terminate(nil)
+                }
+            }
+        }
+        #endif
+
         #if !DISABLE_AUTO_UPDATE
         setupEventMonitor()
         
@@ -140,6 +200,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
     
+    private func setupHotkey() {
+        hotkeyManager = HotkeyManager()
+        hotkeyManager?.action = { [weak self] in
+            self?.toggleWindow()
+        }
+    }
+
+    // Local monitor for ⌘1–⌘7 tool switching. Local (not global) so it needs no
+    // accessibility permission and only acts while our panel is the key window.
+    private func setupToolShortcutMonitor() {
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let window = self?.window, window.isKeyWindow,
+                  event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
+                  let characters = event.charactersIgnoringModifiers,
+                  let number = Int(characters),
+                  (1...AppState.toolTags.count).contains(number) else {
+                return event
+            }
+            UserDefaults.standard.set(AppState.toolTags[number - 1], forKey: "selectedTool")
+            return nil
+        }
+    }
+
     @objc private func handleMenuBarClick() {
         guard let event = NSApp.currentEvent else { return }
         
@@ -165,9 +248,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         updateItem.target = self
         menu.addItem(updateItem)
         #endif
-        
+
         menu.addItem(NSMenuItem.separator())
-        
+
+        // Launch at Login - read the live registration state as the menu is built
+        let launchItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        launchItem.target = self
+        launchItem.state = (SMAppService.mainApp.status == .enabled) ? .on : .off
+        menu.addItem(launchItem)
+
+        // Global Hotkey submenu with a checkmark on the active preset
+        let hotkeyItem = NSMenuItem(title: "Global Hotkey", action: nil, keyEquivalent: "")
+        let hotkeySubmenu = NSMenu()
+        let activePreset = hotkeyManager?.currentPreset ?? .off
+        for preset in HotkeyPreset.allCases {
+            let presetItem = NSMenuItem(title: preset.menuTitle, action: #selector(selectHotkeyPreset(_:)), keyEquivalent: "")
+            presetItem.target = self
+            presetItem.representedObject = preset.rawValue
+            presetItem.state = (preset == activePreset) ? .on : .off
+            hotkeySubmenu.addItem(presetItem)
+        }
+        hotkeyItem.submenu = hotkeySubmenu
+        menu.addItem(hotkeyItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -270,6 +375,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     #endif  // !DISABLE_AUTO_UPDATE
     
+    @objc private func toggleLaunchAtLogin() {
+        do {
+            if SMAppService.mainApp.status == .enabled {
+                try SMAppService.mainApp.unregister()
+            } else {
+                try SMAppService.mainApp.register()
+            }
+        } catch {
+            print("Failed to update Launch at Login: \(error.localizedDescription)")
+        }
+
+        // If the system needs the user to approve the login item, take them there
+        if SMAppService.mainApp.status == .requiresApproval {
+            SMAppService.openSystemSettingsLoginItems()
+        }
+    }
+
+    @objc private func selectHotkeyPreset(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let preset = HotkeyPreset(rawValue: raw) else { return }
+        hotkeyManager?.currentPreset = preset
+    }
+
     @objc private func quitApp() {
         NSApp.terminate(nil)
     }
@@ -322,6 +450,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     #if !DISABLE_AUTO_UPDATE
     private func setupEventMonitor() {
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            // Pinned window stays open even when clicking outside
+            if AppState.shared.isPinned { return }
             if let window = self?.window, window.isVisible {
                 let mouseLocation = NSEvent.mouseLocation
                 if !window.frame.contains(mouseLocation) {
@@ -340,12 +470,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
     
+    #endif  // !DISABLE_AUTO_UPDATE
+
     deinit {
+        if let localKeyMonitor = localKeyMonitor {
+            NSEvent.removeMonitor(localKeyMonitor)
+        }
         #if !DISABLE_AUTO_UPDATE
         if let eventMonitor = eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
         }
         #endif
     }
-    #endif  // !DISABLE_AUTO_UPDATE
 }

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-22
+
+### Added
+- **Global Hotkey**: Toggle the toolkit from anywhere with a configurable shortcut
+  - Presets: ⌃⌥Space, ⌥Space, ⌃⌥Z (off by default)
+  - Configured via the right-click menu, works over fullscreen apps
+- **Launch at Login**: One-click toggle in the right-click menu
+- **Keyboard Tool Switching**: ⌘1–⌘7 switches between tools while the window is focused
+  - Tool buttons now show their shortcut in the hover tooltip
+- **Last-Used Tool Memory**: The app reopens on the tool you used last
+- **Pin Mode**: Pin button in the header keeps the window open while clicking other apps
+- **UUID v7 Support**: Generate time-ordered UUIDs (RFC 9562) alongside v4
+  - Version selector with persistent choice, works with all formats and bulk generation
+- **Base64 Image Preview**: Decoding an image now shows a thumbnail with format, dimensions, and size
+  - Copy the image to the clipboard or save it to a file with the correct extension
+  - `data:image/...;base64,` URIs are handled automatically (prefix stripped on decode)
+  - Encoding an image file shows a small thumbnail in the file badge
+
+### Changed
+- **Modernized UI across all seven tools**: native macOS design language throughout
+  - Translucent material panel background (matches native menu bar popovers)
+  - Native segmented controls replace custom mode/tab button rows; native checkboxes for options
+  - Redundant action buttons removed where processing is live (Base64, URL, Hash, Timestamp now convert as you type); genuine actions (Format, Generate) use native button styles
+  - Quieter section headers with icon-only utility actions and tooltips; accent color reserved for primary actions
+  - Subtler content containers and system-font placeholders; tool switcher chips de-boxed with hover highlight
+
+### Fixed
+- Encoding a large file froze the app for many seconds: rendering the resulting megabyte-scale single-line Base64 stalled the text view's drawing path. Output display is now capped at 100,000 characters (with a notice); Copy and Save always use the complete output
+- Save buttons could not actually write files in sandboxed builds (file-access entitlement was read-only)
+- `xcodebuild test` failed because the shared scheme had no test action configured
+
 ## [1.0.6] - 2025-08-16
 
 ### Added
@@ -318,7 +349,8 @@ The app is lightweight, fast, and designed for developers who need quick access 
 - Additional keyboard shortcuts
 - Bug fixes based on user feedback
 
-[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/dilee/zen-dev-toolkit/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.6...v1.1.0
 [1.0.6]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/dilee/zen-dev-toolkit/compare/v1.0.3...v1.0.4

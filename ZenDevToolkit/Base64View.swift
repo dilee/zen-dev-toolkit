@@ -20,7 +20,19 @@ struct Base64View: View {
     @State private var isProcessing = false
     @State private var isDragging = false
     @State private var fileInfo: FileInfo?
+    @State private var decodedImage: DecodedImage?
+    @State private var fullOutputText: String?
     @FocusState private var isInputFocused: Bool
+
+    // TextKit renders each paragraph as a single unit, so an unbroken line beyond
+    // a few hundred thousand characters stalls the main thread for seconds every
+    // time it draws. Output display is capped; Copy/Save always use the full string.
+    static let displayCharacterLimit = 100_000
+
+    static func displayTruncation(of full: String, limit: Int = displayCharacterLimit) -> (display: String, fullIfTruncated: String?) {
+        guard full.count > limit else { return (full, nil) }
+        return (String(full.prefix(limit)), full)
+    }
     
     // File size limits
     private let maxFileSize: Int = 10 * 1024 * 1024 // 10 MB
@@ -31,14 +43,15 @@ struct Base64View: View {
         let size: Int
         let type: String
         let isBinary: Bool
-        
+        var thumbnail: NSImage? = nil
+
         var formattedSize: String {
             let formatter = ByteCountFormatter()
             formatter.allowedUnits = [.useBytes, .useKB, .useMB]
             formatter.countStyle = .file
             return formatter.string(fromByteCount: Int64(size))
         }
-        
+
         var displayName: String {
             if name.count > 30 {
                 let start = name.prefix(15)
@@ -48,110 +61,91 @@ struct Base64View: View {
             return name
         }
     }
+
+    // Holds a successfully decoded image plus the raw bytes it came from.
+    struct DecodedImage {
+        let image: NSImage
+        let data: Data
+        let format: ImageFormat
+        let pixelWidth: Int
+        let pixelHeight: Int
+        let byteCount: Int
+    }
     
     enum Base64Mode: String, CaseIterable {
         case encode = "Encode"
         case decode = "Decode"
-        
-        var icon: String {
-            switch self {
-            case .encode: return "arrow.right.square"
-            case .decode: return "arrow.left.square"
-            }
-        }
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Mode selector and options
-            VStack(spacing: 12) {
-                HStack(spacing: 8) {
-                    ForEach(Base64Mode.allCases, id: \.self) { currentMode in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                mode = currentMode
-                                // Auto-process if there's input
-                                if !inputText.isEmpty {
-                                    processBase64()
-                                }
-                            }
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: currentMode.icon)
-                                    .font(.system(size: 12))
-                                Text(currentMode.rawValue)
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(mode == currentMode ? Color.accentColor : Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(mode == currentMode ? .white : .primary)
-                        }
-                        .buttonStyle(.plain)
+            // Mode and options
+            HStack(spacing: 12) {
+                Picker("Mode", selection: $mode) {
+                    ForEach(Base64Mode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
                     }
                 }
-                
-                // Options
-                HStack(spacing: 16) {
-                    Toggle(isOn: $isURLSafe) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "link.circle")
-                                .font(.system(size: 11))
-                            Text("URL Safe")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .onChange(of: mode) {
+                    if fileInfo != nil {
+                        clearFileInfo()
+                    } else if !inputText.isEmpty {
+                        processBase64()
                     }
+                }
+
+                Spacer()
+
+                Toggle("URL-safe", isOn: $isURLSafe)
                     .toggleStyle(.checkbox)
+                    .controlSize(.small)
                     .onChange(of: isURLSafe) {
-                        if !inputText.isEmpty {
+                        if !inputText.isEmpty && fileInfo == nil {
                             processBase64()
                         }
                     }
                     .help("Use URL-safe Base64 encoding (replaces + with -, / with _)")
-                    
-                    if mode == .encode {
-                        Toggle(isOn: $addLineBreaks) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "text.line.first.and.arrowtriangle.forward")
-                                    .font(.system(size: 11))
-                                Text("Line Breaks")
-                                    .font(.system(size: 11, weight: .medium))
-                            }
+
+                Toggle("Line breaks", isOn: $addLineBreaks)
+                    .toggleStyle(.checkbox)
+                    .controlSize(.small)
+                    .disabled(mode == .decode)
+                    .onChange(of: addLineBreaks) {
+                        if !inputText.isEmpty && fileInfo == nil {
+                            processBase64()
                         }
-                        .toggleStyle(.checkbox)
-                        .onChange(of: addLineBreaks) {
-                            if !inputText.isEmpty {
-                                processBase64()
-                            }
-                        }
-                        .help("Add line breaks every 76 characters (RFC 2045)")
                     }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 4)
+                    .help("Insert a line break every 76 characters (RFC 2045)")
             }
             .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
             
             // Input section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text(mode == .encode ? "Text to Encode" : "Base64 to Decode")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
                     
                     // File info badge
                     if let fileInfo = fileInfo {
                         HStack(spacing: 6) {
-                            Image(systemName: fileInfo.isBinary ? "doc.fill" : "doc.text.fill")
-                                .font(.system(size: 10))
+                            if let thumbnail = fileInfo.thumbnail {
+                                Image(nsImage: thumbnail)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 28, height: 28)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                            } else {
+                                Image(systemName: fileInfo.isBinary ? "doc.fill" : "doc.text.fill")
+                                    .font(.system(size: 10))
+                            }
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(fileInfo.displayName)
                                     .font(.system(size: 9, weight: .medium))
@@ -187,28 +181,29 @@ struct Base64View: View {
                     }
                     
                     Button(action: pasteFromClipboard) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
-                    .help("Paste from clipboard (⌘V)")
-                    
+                    .foregroundColor(.secondary)
+                    .help("Paste from clipboard")
+
                     Button(action: loadFromFile) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 11))
-                            Text("File")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "folder")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Load from file")
+
+                    Button(action: clearAll) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .disabled(inputText.isEmpty && outputText.isEmpty && decodedImage == nil)
+                    .help("Clear all")
                 }
                 .padding(.horizontal, 16)
                 
@@ -220,21 +215,23 @@ struct Base64View: View {
                         } else if newText.isEmpty {
                             outputText = ""
                             outputCharCount = 0
+                            decodedImage = nil
+                            fullOutputText = nil
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .disabled(isProcessing)
                     
                     if inputText.isEmpty && !isDragging {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 10) {
                             Image(systemName: "arrow.down.doc")
-                                .font(.system(size: 32))
-                                .foregroundColor(Color.secondary.opacity(0.3))
-                            Text(mode == .encode ? 
-                                 "Drop a file here or paste text to encode" : 
-                                 "Drop a Base64 file or paste to decode")
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.system(size: 24, weight: .light))
                                 .foregroundColor(Color.secondary.opacity(0.4))
+                            Text(mode == .encode ?
+                                 "Drop a file here or paste text to encode" :
+                                 "Drop a Base64 file or paste to decode")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color.secondary.opacity(0.6))
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -242,7 +239,7 @@ struct Base64View: View {
                     }
                     
                     if isDragging {
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 8)
                             .fill(Color.accentColor.opacity(0.1))
                             .overlay(
                                 VStack(spacing: 8) {
@@ -265,13 +262,13 @@ struct Base64View: View {
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(
-                                    isDragging ? Color.accentColor : 
-                                    (errorMessage.isEmpty ? Color.secondary.opacity(0.2) : Color.red.opacity(0.5)),
+                                    isDragging ? Color.accentColor :
+                                    (errorMessage.isEmpty ? Color.secondary.opacity(0.15) : Color.red.opacity(0.5)),
                                     lineWidth: isDragging ? 2 : 1
                                 )
                         )
@@ -306,96 +303,55 @@ struct Base64View: View {
                 .padding(.top, 8)
             }
             
-            // Action buttons
-            HStack(spacing: 10) {
-                Button(action: processBase64) {
-                    HStack {
-                        Image(systemName: mode.icon)
-                            .font(.system(size: 12))
-                        Text(mode.rawValue)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(inputText.isEmpty ? Color.accentColor.opacity(0.3) : Color.accentColor)
-                    )
-                    .foregroundColor(.white)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty)
-                .keyboardShortcut(.return, modifiers: .command)
-                
-                Button(action: swapInputOutput) {
-                    HStack {
-                        Image(systemName: "arrow.up.arrow.down")
-                            .font(.system(size: 12))
-                        Text("Swap")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.secondary.opacity(0.15))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                            )
-                    )
-                    .foregroundColor(.primary)
-                }
-                .buttonStyle(.plain)
-                .disabled(outputText.isEmpty)
-                .help("Swap input and output")
-                
-                Button(action: clearAll) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 12))
-                        .frame(width: 32, height: 32)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty && outputText.isEmpty)
-                .help("Clear all")
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
             // Output section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(mode == .encode ? "Encoded Base64" : "Decoded Text")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
-                    if !errorMessage.isEmpty && outputText.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    Text(outputTitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
+                    if !errorMessage.isEmpty && !hasOutput {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 11))
                             .foregroundColor(.red)
                             .symbolRenderingMode(.hierarchical)
-                    } else if !outputText.isEmpty {
+                    } else if hasOutput {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 11))
                             .foregroundColor(.green)
                             .symbolRenderingMode(.hierarchical)
                     }
-                    
+
                     Spacer()
-                    
-                    if !outputText.isEmpty {
+
+                    if let decoded = decodedImage {
+                        Button(action: { copyImageToClipboard(decoded.image) }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 11))
+                                Text("Copy Image")
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.accentColor)
+                        .help("Copy image to clipboard")
+
+                        Button(action: { saveImageToFile(decoded) }) {
+                            Image(systemName: "square.and.arrow.down")
+                                .font(.system(size: 12))
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.secondary)
+                        .help("Save image to file")
+                    } else if !outputText.isEmpty {
                         Text("\(outputCharCount) chars")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(Color.secondary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.secondary.opacity(0.1)))
-                        
+
                         Button(action: copyToClipboard) {
                             HStack(spacing: 4) {
                                 Image(systemName: "doc.on.doc")
@@ -407,46 +363,67 @@ struct Base64View: View {
                         .buttonStyle(.plain)
                         .foregroundColor(.accentColor)
                         .help("Copy to clipboard (⌘C)")
-                        
+
                         Button(action: saveToFile) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "square.and.arrow.down")
-                                    .font(.system(size: 11))
-                                Text("Save")
-                                    .font(.system(size: 11, weight: .medium))
-                            }
+                            Image(systemName: "square.and.arrow.down")
+                                .font(.system(size: 12))
                         }
                         .buttonStyle(.plain)
-                        .foregroundColor(.accentColor)
-                        .help("Save to file")
+                        .foregroundColor(.secondary)
+                        .help("Save full output to file")
+
+                        Button(action: swapInputOutput) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .font(.system(size: 12))
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.secondary)
+                        .disabled(fullOutputText != nil)
+                        .help(fullOutputText != nil ? "Swap is unavailable for very large outputs" : "Swap input and output")
                     }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
-                
+
+                if let full = fullOutputText {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 10))
+                        Text("Showing first \(Self.displayCharacterLimit.formatted()) of \(full.count.formatted()) characters — Copy and Save use the full output")
+                            .font(.system(size: 10))
+                            .lineLimit(2)
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 16)
+                }
+
                 ZStack(alignment: .topLeading) {
-                    UndoableTextEditor(text: $outputText)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    if outputText.isEmpty {
-                        Text(mode == .encode ? 
-                             "Encoded Base64 will appear here..." : 
-                             "Decoded text will appear here...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(20)
-                            .allowsHitTesting(false)
+                    if let decoded = decodedImage {
+                        imageResultCard(decoded)
+                    } else {
+                        UndoableTextEditor(text: fullOutputText != nil ? .constant(outputText) : $outputText)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                        if outputText.isEmpty {
+                            Text(mode == .encode ?
+                                 "Encoded Base64 will appear here" :
+                                 "Decoded text will appear here")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color.secondary.opacity(0.5))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .allowsHitTesting(false)
+                        }
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(
-                                    !errorMessage.isEmpty && outputText.isEmpty ? 
-                                    Color.red.opacity(0.4) : 
-                                    (!outputText.isEmpty ? Color.green.opacity(0.4) : Color.secondary.opacity(0.2)),
+                                    !errorMessage.isEmpty && !hasOutput ?
+                                    Color.red.opacity(0.4) : Color.secondary.opacity(0.15),
                                     lineWidth: 1
                                 )
                         )
@@ -456,18 +433,102 @@ struct Base64View: View {
                 .padding(.bottom, 16)
             }
             .frame(maxHeight: .infinity)
+            .padding(.top, 4)
         }
-        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
-    
+
+    // MARK: - Image Output
+
+    private var hasOutput: Bool {
+        !outputText.isEmpty || decodedImage != nil
+    }
+
+    private var outputTitle: String {
+        if mode == .encode { return "Encoded Base64" }
+        return decodedImage != nil ? "Decoded Image" : "Decoded Text"
+    }
+
+    private func imageResultCard(_ decoded: DecodedImage) -> some View {
+        VStack(spacing: 12) {
+            Image(nsImage: decoded.image)
+                .resizable()
+                .interpolation(.medium)
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity, maxHeight: 140)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.06))
+                )
+
+            Text(imageCaption(decoded))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func imageCaption(_ decoded: DecodedImage) -> String {
+        var parts = [decoded.format.displayName]
+        if decoded.pixelWidth > 0 && decoded.pixelHeight > 0 {
+            parts.append("\(decoded.pixelWidth)×\(decoded.pixelHeight)")
+        }
+        parts.append(formatByteCount(decoded.byteCount))
+        return parts.joined(separator: " • ")
+    }
+
+    // Reads true pixel dimensions from the decoded representation; (0, 0) when unknown.
+    private func pixelDimensions(of image: NSImage) -> (Int, Int) {
+        for rep in image.representations where rep.pixelsWide > 0 && rep.pixelsHigh > 0 {
+            return (rep.pixelsWide, rep.pixelsHigh)
+        }
+        return (0, 0)
+    }
+
+    private func formatByteCount(_ bytes: Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useBytes, .useKB, .useMB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(bytes))
+    }
+
     // MARK: - Actions
-    
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`):
+    // a gradient image rendered at runtime, delivered as a data URI so the
+    // decode path shows the image preview card.
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        mode = .decode
+        let size = NSSize(width: 160, height: 120)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSGradient(colors: [.systemBlue, .systemPurple, .systemPink])?
+            .draw(in: NSRect(origin: .zero, size: size), angle: 45)
+        image.unlockFocus()
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let png = rep.representation(using: .png, properties: [:]) else { return }
+        inputText = "data:image/png;base64,\(png.base64EncodedString())"
+        updateCharacterCount()
+        processBase64()
+    }
+    #endif
+
     private func processBase64() {
         clearError()
-        
+        decodedImage = nil
+        fullOutputText = nil
+
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             outputText = ""
             outputCharCount = 0
@@ -496,47 +557,69 @@ struct Base64View: View {
                 .replacingOccurrences(of: "=", with: "")
         }
         
-        outputText = encoded
-        outputCharCount = encoded.count
+        setOutput(encoded)
     }
-    
+
+    private func setOutput(_ full: String) {
+        let (display, fullIfTruncated) = Self.displayTruncation(of: full)
+        outputText = display
+        fullOutputText = fullIfTruncated
+        outputCharCount = full.count
+    }
+
     private func decodeFromBase64() {
-        var base64String = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+        // Developers routinely paste full "data:image/png;base64,…" URIs, so peel any header first.
+        var base64String = stripDataURIPrefix(inputText).trimmingCharacters(in: .whitespacesAndNewlines)
+
         // Remove any whitespace or newlines within the base64 string
         base64String = base64String.replacingOccurrences(of: "\n", with: "")
         base64String = base64String.replacingOccurrences(of: "\r", with: "")
         base64String = base64String.replacingOccurrences(of: " ", with: "")
-        
+
         if isURLSafe {
             // Convert URL-safe base64 back to standard base64
             base64String = base64String
                 .replacingOccurrences(of: "-", with: "+")
                 .replacingOccurrences(of: "_", with: "/")
-            
+
             // Add padding if necessary
             let remainder = base64String.count % 4
             if remainder > 0 {
                 base64String += String(repeating: "=", count: 4 - remainder)
             }
         }
-        
+
         guard let data = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else {
             showError("Invalid Base64 format")
             return
         }
-        
+
+        // If the bytes are a recognizable image, present a preview card instead of text.
+        if let format = ImageFormat(sniffing: data), let image = NSImage(data: data) {
+            let (width, height) = pixelDimensions(of: image)
+            decodedImage = DecodedImage(
+                image: image,
+                data: data,
+                format: format,
+                pixelWidth: width,
+                pixelHeight: height,
+                byteCount: data.count
+            )
+            outputText = ""
+            outputCharCount = 0
+            return
+        }
+
         guard let decoded = String(data: data, encoding: .utf8) else {
             // Try to handle binary data
             outputText = "Binary data (\(data.count) bytes) - not displayable as text"
             outputCharCount = data.count
             return
         }
-        
-        outputText = decoded
-        outputCharCount = decoded.count
+
+        setOutput(decoded)
     }
-    
+
     private func swapInputOutput() {
         let temp = inputText
         inputText = outputText
@@ -638,14 +721,17 @@ struct Base64View: View {
                             .replacingOccurrences(of: "=", with: "")
                     }
                     
+                    // Surface a small preview in the badge when the binary is a known image.
+                    let thumbnail = ImageFormat(sniffing: data) != nil ? NSImage(data: data) : nil
+
                     inputText = "[Binary file: \(fileName)]"
-                    outputText = finalEncoded
-                    outputCharCount = finalEncoded.count
+                    setOutput(finalEncoded)
                     fileInfo = FileInfo(
                         name: fileName,
                         size: fileSize,
                         type: fileExtension.isEmpty ? "binary" : fileExtension,
-                        isBinary: true
+                        isBinary: true,
+                        thumbnail: thumbnail
                     )
                     characterCount = data.count
                 }
@@ -678,6 +764,8 @@ struct Base64View: View {
         outputText = ""
         characterCount = 0
         outputCharCount = 0
+        decodedImage = nil
+        fullOutputText = nil
         clearError()
     }
     
@@ -691,7 +779,32 @@ struct Base64View: View {
         savePanel.begin { response in
             if response == .OK, let url = savePanel.url {
                 do {
-                    try outputText.write(to: url, atomically: true, encoding: .utf8)
+                    try (fullOutputText ?? outputText).write(to: url, atomically: true, encoding: .utf8)
+                } catch {
+                    showError("Unable to save file: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    private func copyImageToClipboard(_ image: NSImage) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([image])
+    }
+
+    private func saveImageToFile(_ decoded: DecodedImage) {
+        let savePanel = NSSavePanel()
+        savePanel.title = "Save Image"
+        savePanel.nameFieldStringValue = "decoded.\(decoded.format.fileExtension)"
+        savePanel.canCreateDirectories = true
+        savePanel.allowedContentTypes = [decoded.format.utType]
+
+        savePanel.begin { response in
+            if response == .OK, let url = savePanel.url {
+                do {
+                    // Write the raw decoded bytes verbatim rather than re-encoding the image.
+                    try decoded.data.write(to: url)
                 } catch {
                     showError("Unable to save file: \(error.localizedDescription)")
                 }
@@ -705,6 +818,8 @@ struct Base64View: View {
         characterCount = 0
         outputCharCount = 0
         fileInfo = nil
+        decodedImage = nil
+        fullOutputText = nil
         clearError()
     }
     
@@ -721,13 +836,14 @@ struct Base64View: View {
     private func copyToClipboard() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(outputText, forType: .string)
+        pasteboard.setString(fullOutputText ?? outputText, forType: .string)
     }
     
     private func showError(_ message: String) {
         errorMessage = message
         outputText = ""
         outputCharCount = 0
+        fullOutputText = nil
     }
     
     private func clearError() {

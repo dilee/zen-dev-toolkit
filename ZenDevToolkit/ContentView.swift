@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedTool = "JSON"
-    
+    @AppStorage("selectedTool") private var selectedTool = "JSON"
+    @ObservedObject private var appState = AppState.shared
+
     #if !DISABLE_AUTO_UPDATE
     @ObservedObject var updateChecker = UpdateChecker.shared
     @State private var showUpdateBanner = false
@@ -33,13 +34,29 @@ struct ContentView: View {
                 CompactToolButton(icon: "key", title: "UUID", tag: "UUID", selection: $selectedTool)
                 CompactToolButton(icon: "calendar.badge.clock", title: "Time", tag: "Time", selection: $selectedTool)
                 CompactToolButton(icon: "person.badge.key", title: "JWT", tag: "JWT", selection: $selectedTool)
+
+                // Icon-only pin toggle - kept narrow so the tool buttons keep their width
+                Button(action: {
+                    appState.isPinned.toggle()
+                }) {
+                    Image(systemName: appState.isPinned ? "pin.fill" : "pin")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(appState.isPinned ? .accentColor : .secondary)
+                        .frame(width: 28)
+                        .frame(maxHeight: .infinity)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Keep window open when clicking outside")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .frame(height: 60)
             .frame(maxWidth: .infinity)
-            .background(.ultraThinMaterial)
-            
+
+            Divider()
+                .opacity(0.5)
+
             // Tool content - use fixed size container
             VStack {
                 switch selectedTool {
@@ -62,7 +79,6 @@ struct ContentView: View {
                 }
             }
             .frame(width: 420, height: 620) // Fixed size for all views
-            .background(Color(NSColor.windowBackgroundColor))
             .animation(.none, value: selectedTool) // Disable animation
             
             #if !DISABLE_AUTO_UPDATE
@@ -75,6 +91,7 @@ struct ContentView: View {
             #endif
         }
         .frame(width: 420, height: windowHeight)
+        .background(VisualEffectBackground())
         #if !DISABLE_AUTO_UPDATE
         .animation(.easeInOut(duration: 0.3), value: showUpdateBanner)
         .onReceive(updateChecker.$updateAvailable) { available in
@@ -152,11 +169,20 @@ struct CompactToolButton: View {
     let title: String
     let tag: String
     @Binding var selection: String
-    
+    @State private var isHovering = false
+
     var isSelected: Bool {
         selection == tag
     }
-    
+
+    // Derive the ⌘ number from the shared tool order so it stays in sync
+    var helpText: String {
+        if let index = AppState.toolTags.firstIndex(of: tag) {
+            return "\(title) (⌘\(index + 1))"
+        }
+        return title
+    }
+
     var body: some View {
         Button(action: {
             withAnimation(.easeInOut(duration: 0.15)) {
@@ -175,11 +201,13 @@ struct CompactToolButton: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.1))
+                    .fill(isSelected ? Color.accentColor : (isHovering ? Color.secondary.opacity(0.12) : Color.clear))
             )
-            .foregroundColor(isSelected ? .white : .primary)
+            .foregroundColor(isSelected ? .white : .secondary)
         }
         .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .help(helpText)
     }
 }
 

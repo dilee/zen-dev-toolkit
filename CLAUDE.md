@@ -15,18 +15,30 @@ ZenDevToolkit is a lightweight macOS menu bar application that provides develope
 
 - **ZenDevToolkitApp.swift**: Main app entry point with menu bar setup via AppDelegate
   - Manages NSStatusItem for menu bar presence
-  - Controls NSPopover for tool interface (360x500 size)
-  
+  - Controls a custom borderless NSPanel (ToolkitPanel, 420×680) hosting ContentView
+  - Installs the ⌘1–⌘7 local key monitor and the global hotkey (via HotkeyManager)
+  - Right-click menu: About, Check for Updates (Homebrew builds), Launch at Login (SMAppService), Global Hotkey presets, Quit
+
 - **ContentView.swift**: Main UI container that hosts all tools
-  - Segmented picker for tool selection
-  - Currently implements JSON formatter with placeholder views for other tools
+  - Compact icon tool buttons in a fixed header (order defined by `AppState.toolTags`)
+  - Last-used tool persisted via `@AppStorage("selectedTool")`
+  - Pin toggle to keep the panel open when clicking outside
+
+- **AppState.swift**: Shared session state (pin) and the canonical tool-tag order
+- **HotkeyManager.swift**: Global hotkey registration via Carbon `RegisterEventHotKey` (presets: off/⌃⌥Space/⌥Space/⌃⌥Z, persisted in `globalHotkeyPreset`)
+- **UndoableTextEditor.swift**: Shared NSTextView wrapper used by all text-based tools (undo/redo, monospace)
+- **UpdateChecker.swift / UpdateNotificationView.swift**: GitHub-release update check (compiled out in App Store builds)
 
 ### Tool Views
 
-Each tool is implemented as a separate SwiftUI view:
-- JSONFormatterView: Fully implemented with format/minify/validate functionality
-- TimestampConverterView: Fully implemented with Unix/human date conversion and timezone support
-- Base64View, URLEncoderView, HashGeneratorView, UUIDGeneratorView: Placeholder implementations
+Each tool is implemented as a separate SwiftUI view — all fully implemented:
+- JSONFormatterView (+ JSONPathParser): format/minify/validate plus a JSONPath query tab
+- Base64View (+ ImageDataInspector): text/file/drag-drop encode-decode, URL-safe and line-break options, `data:` URI stripping, image preview with Copy Image/Save for decoded images
+- URLEncoderView: encode/decode/analyze with URL component breakdown
+- HashGeneratorView: MD5/SHA-1/SHA-256/384/512, HMAC, file hashing, hash compare
+- UUIDGeneratorView (+ UUIDv7): v4 and time-ordered v7 (RFC 9562), formats, bulk generation
+- TimestampConverterView: Unix/human conversion with timezone support
+- JWTView: decode/generate/verify (HS256/HS384/HS512)
 
 ## Build Configuration
 
@@ -117,27 +129,29 @@ xcodebuild test -scheme ZenDevToolkit -only-testing:ZenDevToolkitTests
 open ZenDevToolkit.xcodeproj
 ```
 
-## Planned Features (v1.0)
+## Features
 
 1. **JSON Formatter & Validator** ✅ (Implemented)
    - Format, minify, validate with error messages
+   - JSONPath query tab (property access, recursive descent, slices, basic filters)
    - Clipboard integration, monospace font display
 
-2. **Base64 Encoder/Decoder** (Placeholder)
-   - Text and file support planned
-   - Bidirectional encoding/decoding
+2. **Base64 Encoder/Decoder** ✅ (Implemented)
+   - Text, file, and drag-and-drop input; URL-safe and line-break options
+   - Automatic `data:<mime>;base64,` prefix stripping on decode
+   - Image preview for decoded images (thumbnail, dimensions, Copy Image, Save)
 
-3. **URL Encoder/Decoder** (Placeholder)
-   - Percent-encoding for URLs
-   - Query parameter handling
+3. **URL Encoder/Decoder** ✅ (Implemented)
+   - Standard/component/form-data encoding modes
+   - Analyze mode with component breakdown and query params as JSON
 
-4. **Hash Generator** (Placeholder)
-   - MD5, SHA1, SHA256 support planned
-   - Uses CommonCrypto framework
+4. **Hash Generator** ✅ (Implemented)
+   - MD5, SHA-1, SHA-256, SHA-384, SHA-512 with HMAC support
+   - File hashing and hash comparison
 
-5. **UUID Generator** (Placeholder)
-   - Version 4 UUIDs
-   - Multiple format options
+5. **UUID Generator** ✅ (Implemented)
+   - Version 4 (random) and Version 7 (time-ordered, RFC 9562) UUIDs
+   - Multiple format options, bulk generation
 
 6. **Timestamp Converter** ✅ (Implemented)
    - Convert Unix timestamps to human-readable dates
@@ -155,6 +169,13 @@ open ZenDevToolkit.xcodeproj
    - Toggle between readable and JSON views for payload
    - Base64URL encoding/decoding for JWT format compliance
 
+8. **App Shell / Quality of Life** ✅ (Implemented)
+   - Global hotkey to toggle the popover (presets: ⌃⌥Space, ⌥Space, ⌃⌥Z; off by default; Carbon `RegisterEventHotKey`, App Store safe)
+   - Launch at Login via `SMAppService` (right-click menu toggle)
+   - ⌘1–⌘7 tool switching (local key monitor, active only while the panel is key)
+   - Last-used tool remembered across launches (`@AppStorage("selectedTool")`)
+   - Pin toggle to keep the panel open while clicking other apps (session-only, gates both the event-monitor and `resignKey` dismissal paths)
+
 ## Key Implementation Notes
 
 - The app uses SwiftUI for all UI components
@@ -167,31 +188,36 @@ open ZenDevToolkit.xcodeproj
 ## Adding New Tools
 
 To add a new tool:
-1. Create a new SwiftUI View in ContentView.swift or a separate file
-2. Add a new case to the Picker in ContentView
-3. Add the corresponding case in the switch statement
-4. Implement the tool's functionality following the JSONFormatterView pattern
+1. Create a new SwiftUI View in a separate file (it joins the target automatically — the project uses Xcode synchronized folder groups, so never edit project.pbxproj by hand)
+2. Add a `CompactToolButton` to the header row in ContentView and a case to its switch statement
+3. Append the tool's tag to `AppState.toolTags` in the same position as its header button (this drives the ⌘1–⌘9 shortcuts and tooltips)
+4. Implement the tool's functionality following the JSONFormatterView pattern (UndoableTextEditor for text areas, ⌘Return for the primary action)
 
 ## UI/UX Guidelines
 
 ### Design Principles
-- Clean, minimalist interface that adapts to macOS light/dark mode
-- Tools follow a consistent layout: input area → action buttons → output area
-- Use `.buttonStyle(.borderedProminent)` for primary actions
-- Use `.buttonStyle(.bordered)` for secondary actions
-- Include copy/paste buttons for user convenience
-- Show validation feedback with visual indicators (checkmarks, error messages)
+
+The design language (exemplar: Base64View.swift — read it before styling anything):
+- The panel sits on a translucent `NSVisualEffectView` material (`VisualEffectBackground`); tool views must NOT set an opaque root background
+- Mode/tab choices are native segmented `Picker`s (`.pickerStyle(.segmented)`, `.labelsHidden()`, `.fixedSize()` when compact); boolean options are small native checkboxes (`.toggleStyle(.checkbox)`, `.controlSize(.small)`, no icons in labels)
+- Prefer live processing on input change over explicit action buttons; keep buttons only for genuine transformations (Format, Generate) as native `.borderedProminent`/`.bordered` — never full-width custom shapes
+- Section labels: 11pt medium `.secondary`; utility actions (Paste/File/Clear/Save/Swap) are icon-only 12pt secondary buttons with `.help()` tooltips; at most ONE accent action per header row (usually Copy, icon + 11pt text)
+- Content containers: `RoundedRectangle(cornerRadius: 8)` filled `Color.primary.opacity(0.04)` with a `Color.secondary.opacity(0.15)` hairline border; red border only for errors; success is a green checkmark icon in the header, never a green border
+- Placeholders: system font 12 (monospace is for content only), `secondary.opacity(0.5)`, top-leading, no trailing "..."
+- Rhythm: 16pt horizontal padding, section VStacks spacing 8, header rows `HStack(spacing: 10)`, top controls row `.padding(.top, 14).padding(.bottom, 10)`
 
 ### Performance Requirements
 - Launch time must be <1 second
 - All operations should feel instant (no loading spinners for local operations)
 - Lightweight memory footprint for always-running menu bar app
 
-### Future Enhancements (Post v1.0)
+### Future Enhancements (Post v1.1)
 - Regex tester and matcher
-- Color converter (hex, RGB, HSL)
+- Color converter (hex, RGB, HSL) with native eyedropper (NSColorSampler)
 - QR code generator
-- Custom keyboard shortcuts
+- Cron expression explainer
+- Smart clipboard detection (route clipboard content to the matching tool; mind macOS 15.4 pasteboard privacy prompts)
+- Tool visibility settings once the tab count outgrows the header row
 - Bulk file processing
 
 ## Release Process

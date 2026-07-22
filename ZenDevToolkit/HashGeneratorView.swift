@@ -16,132 +16,108 @@ struct HashGeneratorView: View {
     @State private var characterCount = 0
     @State private var outputCharCount = 0
     @FocusState private var isInputFocused: Bool
-    
+
     enum HashAlgorithm: String, CaseIterable {
         case md5 = "MD5"
         case sha1 = "SHA-1"
         case sha256 = "SHA-256"
         case sha384 = "SHA-384"
         case sha512 = "SHA-512"
-        
+
         var displayName: String { rawValue }
     }
-    
+
     enum ComparisonResult {
         case none, match, noMatch
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Algorithm and options section
-            VStack(spacing: 12) {
-                // Algorithm Selection
-                HStack(spacing: 8) {
+            // Algorithm and options
+            VStack(spacing: 8) {
+                Picker("Algorithm", selection: $selectedAlgorithm) {
                     ForEach(HashAlgorithm.allCases, id: \.self) { algorithm in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                selectedAlgorithm = algorithm
-                                generateHash()
-                            }
-                        }) {
-                            Text(algorithm.displayName)
-                                .font(.system(size: 11, weight: .medium))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(selectedAlgorithm == algorithm ? Color.accentColor : Color.secondary.opacity(0.1))
-                                )
-                                .foregroundColor(selectedAlgorithm == algorithm ? .white : .primary)
-                        }
-                        .buttonStyle(.plain)
+                        Text(algorithm.displayName).tag(algorithm)
                     }
                 }
-                
-                // Options
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.small)
+                .onChange(of: selectedAlgorithm) {
+                    generateHash()
+                }
+
                 HStack(spacing: 16) {
-                    Toggle(isOn: $isHMAC) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "key.fill")
-                                .font(.system(size: 11))
-                            Text("HMAC")
-                                .font(.system(size: 11, weight: .medium))
+                    Toggle("HMAC", isOn: $isHMAC)
+                        .toggleStyle(.checkbox)
+                        .controlSize(.small)
+                        .onChange(of: isHMAC) {
+                            generateHash()
                         }
-                    }
-                    .toggleStyle(.checkbox)
-                    .onChange(of: isHMAC) {
-                        generateHash()
-                    }
-                    
-                    Toggle(isOn: $isUppercase) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "textformat")
-                                .font(.system(size: 11))
-                            Text("Uppercase")
-                                .font(.system(size: 11, weight: .medium))
+                        .help("Generate a keyed HMAC using the secret key")
+
+                    Toggle("Uppercase", isOn: $isUppercase)
+                        .toggleStyle(.checkbox)
+                        .controlSize(.small)
+                        .onChange(of: isUppercase) {
+                            generateHash()
                         }
-                    }
-                    .toggleStyle(.checkbox)
-                    .onChange(of: isUppercase) {
-                        generateHash()
-                    }
-                    
+                        .help("Show the hash in uppercase hexadecimal")
+
                     Spacer()
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
-            
-            // HMAC Secret Key (shown only when HMAC is enabled)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            // HMAC secret key (revealed only when HMAC is enabled)
             if isHMAC {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Secret Key")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                    }
-                    
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Secret Key")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 16)
+
                     ZStack(alignment: .topLeading) {
                         UndoableTextEditor(text: $secretKey) { _ in
                             generateHash()
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        
+
                         if secretKey.isEmpty {
-                            Text("Enter secret key for HMAC...")
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundColor(Color.secondary.opacity(0.4))
-                                .padding(8)
+                            Text("Enter secret key for HMAC")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color.secondary.opacity(0.5))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
                                 .allowsHitTesting(false)
                         }
                     }
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(NSColor.controlBackgroundColor))
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.primary.opacity(0.04))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
                             )
                     )
                     .frame(height: 40)
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
                 .padding(.bottom, 8)
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
-            
+
             // Input section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("Input Text")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     if selectedFileURL != nil {
                         HStack(spacing: 6) {
                             Image(systemName: "doc.fill")
@@ -150,7 +126,7 @@ struct HashGeneratorView: View {
                                 .font(.system(size: 10, weight: .medium))
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                            Button(action: { 
+                            Button(action: {
                                 selectedFileURL = nil
                                 generateHash()
                             }) {
@@ -174,33 +150,34 @@ struct HashGeneratorView: View {
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.secondary.opacity(0.1)))
                     }
-                    
+
                     Button(action: pasteInput) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Paste from clipboard")
-                    
+
                     Button(action: selectFile) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 11))
-                            Text("File")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "folder")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Hash a file")
+
+                    Button(action: clearAll) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .disabled(inputText.isEmpty && hashOutput.isEmpty && selectedFileURL == nil)
+                    .help("Clear all")
                 }
                 .padding(.horizontal, 16)
-                
+
                 ZStack(alignment: .topLeading) {
                     UndoableTextEditor(text: $inputText) { _ in
                         updateCharacterCount()
@@ -210,15 +187,16 @@ struct HashGeneratorView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .disabled(selectedFileURL != nil)
-                    
+
                     if inputText.isEmpty && selectedFileURL == nil {
-                        Text("Paste or type text to hash...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Text("Paste or type text to hash")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
-                    
+
                     if isProcessing {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle())
@@ -228,71 +206,33 @@ struct HashGeneratorView: View {
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
                         )
                 )
-                .frame(minHeight: 60, idealHeight: 80, maxHeight: 100)
+                .frame(minHeight: 80, idealHeight: 100, maxHeight: 120)
                 .padding(.horizontal, 16)
             }
-            
-            // Action buttons
-            HStack(spacing: 10) {
-                Button(action: generateHash) {
-                    HStack {
-                        Image(systemName: "number.square")
-                            .font(.system(size: 12))
-                        Text("Generate Hash")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(inputText.isEmpty && selectedFileURL == nil ? Color.accentColor.opacity(0.3) : Color.accentColor)
-                    )
-                    .foregroundColor(.white)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty && selectedFileURL == nil)
-                .keyboardShortcut(.return, modifiers: .command)
-                
-                Button(action: clearAll) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 12))
-                        .frame(width: 32, height: 32)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .disabled(inputText.isEmpty && hashOutput.isEmpty && selectedFileURL == nil)
-                .help("Clear all")
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
-            // Hash Output section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+
+            // Hash output section
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("Hash Output")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     if !hashOutput.isEmpty {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 11))
                             .foregroundColor(.green)
                             .symbolRenderingMode(.hierarchical)
                     }
-                    
+
                     Spacer()
-                    
+
                     if !hashOutput.isEmpty {
                         Text("\(outputCharCount) chars")
                             .font(.system(size: 10, weight: .medium))
@@ -300,7 +240,7 @@ struct HashGeneratorView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.secondary.opacity(0.1)))
-                        
+
                         Button(action: copyOutput) {
                             HStack(spacing: 4) {
                                 Image(systemName: "doc.on.doc")
@@ -315,47 +255,48 @@ struct HashGeneratorView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                
+                .padding(.top, 12)
+
                 ZStack(alignment: .topLeading) {
                     ScrollView {
                         Text(hashOutput)
                             .font(.system(size: 12, design: .monospaced))
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                             .textSelection(.enabled)
                     }
-                    
+
                     if hashOutput.isEmpty {
-                        Text("Hash will appear here...")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color.secondary.opacity(0.4))
-                            .padding(12)
+                        Text("Hash will appear here")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .allowsHitTesting(false)
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(
-                                    !hashOutput.isEmpty ? Color.green.opacity(0.4) : Color.secondary.opacity(0.2),
-                                    lineWidth: 1
-                                )
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
                         )
                 )
-                .frame(minHeight: 50, idealHeight: 80)
+                .frame(minHeight: 60, idealHeight: 90)
                 .padding(.horizontal, 16)
             }
-            
-            // Hash Comparison section
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+
+            // Hash comparison section
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
                     Text("Compare Hash")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+
                     Spacer()
-                    
+
                     if comparisonResult == .match {
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark.circle.fill")
@@ -375,70 +316,104 @@ struct HashGeneratorView: View {
                                 .foregroundColor(.red)
                         }
                     }
-                    
+
                     Button(action: pasteCompareHash) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.system(size: 11))
-                            Text("Paste")
-                                .font(.system(size: 11, weight: .medium))
-                        }
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.secondary)
                     .help("Paste hash to compare")
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
-                
-                TextField("Paste hash to compare", text: $compareHash)
-                    .font(.system(size: 12, design: .monospaced))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onChange(of: compareHash) {
-                        performComparison()
+
+                ZStack(alignment: .topLeading) {
+                    TextField("", text: $compareHash)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 12, design: .monospaced))
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .onChange(of: compareHash) {
+                            performComparison()
+                        }
+
+                    if compareHash.isEmpty {
+                        Text("Paste hash to compare")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.secondary.opacity(0.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .allowsHitTesting(false)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(
+                                    comparisonResult == .noMatch ? Color.red.opacity(0.4) : Color.secondary.opacity(0.15),
+                                    lineWidth: 1
+                                )
+                        )
+                )
+                .frame(height: 44)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
-            
+
             Spacer(minLength: 0)
         }
-        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             isInputFocused = true
+            #if DEBUG
+            seedDemoContentIfRequested()
+            #endif
         }
     }
-    
+
     // MARK: - Hash Generation
-    
+
+    #if DEBUG
+    // Populates realistic content for marketing captures (`-DemoContent 1`).
+    private func seedDemoContentIfRequested() {
+        guard UserDefaults.standard.bool(forKey: "DemoContent") else { return }
+        inputText = "The quick brown fox jumps over the lazy dog"
+        updateCharacterCount()
+        generateHash()
+    }
+    #endif
+
     private func generateHash() {
         guard !inputText.isEmpty || selectedFileURL != nil else {
             hashOutput = ""
             outputCharCount = 0
             return
         }
-        
+
         if let fileURL = selectedFileURL {
             generateFileHash(url: fileURL)
         } else {
             let data = inputText.data(using: .utf8) ?? Data()
-            
+
             if isHMAC {
                 hashOutput = generateHMAC(data: data, key: secretKey)
             } else {
                 hashOutput = generateRegularHash(data: data)
             }
-            
+
             if isUppercase {
                 hashOutput = hashOutput.uppercased()
             }
-            
+
             outputCharCount = hashOutput.count
         }
-        
+
         performComparison()
     }
-    
+
     private func generateRegularHash(data: Data) -> String {
         switch selectedAlgorithm {
         case .md5:
@@ -453,10 +428,10 @@ struct HashGeneratorView: View {
             return SHA512.hash(data: data).hexString
         }
     }
-    
+
     private func generateHMAC(data: Data, key: String) -> String {
         let keyData = key.data(using: .utf8) ?? Data()
-        
+
         switch selectedAlgorithm {
         case .md5:
             return hmacMD5(data: data, key: keyData)
@@ -473,9 +448,9 @@ struct HashGeneratorView: View {
             return Data(hmac).hexString
         }
     }
-    
+
     // MARK: - CommonCrypto HMAC Functions
-    
+
     private func hmacMD5(data: Data, key: Data) -> String {
         var hmac = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
         data.withUnsafeBytes { dataBytes in
@@ -488,7 +463,7 @@ struct HashGeneratorView: View {
         }
         return Data(hmac).hexString
     }
-    
+
     private func hmacSHA1(data: Data, key: Data) -> String {
         var hmac = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
         data.withUnsafeBytes { dataBytes in
@@ -501,12 +476,12 @@ struct HashGeneratorView: View {
         }
         return Data(hmac).hexString
     }
-    
+
     // MARK: - File Hashing
-    
+
     private func generateFileHash(url: URL) {
         isProcessing = true
-        
+
         DispatchQueue.global(qos: .userInitiated).async {
             guard let data = try? Data(contentsOf: url) else {
                 DispatchQueue.main.async {
@@ -516,14 +491,14 @@ struct HashGeneratorView: View {
                 }
                 return
             }
-            
+
             let hash: String
             if self.isHMAC {
                 hash = self.generateHMAC(data: data, key: self.secretKey)
             } else {
                 hash = self.generateRegularHash(data: data)
             }
-            
+
             DispatchQueue.main.async {
                 self.hashOutput = self.isUppercase ? hash.uppercased() : hash
                 self.outputCharCount = self.hashOutput.count
@@ -532,13 +507,13 @@ struct HashGeneratorView: View {
             }
         }
     }
-    
+
     private func selectFile() {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
-        
+
         if panel.runModal() == .OK {
             selectedFileURL = panel.url
             inputText = "" // Clear text input when file is selected
@@ -548,37 +523,38 @@ struct HashGeneratorView: View {
             }
         }
     }
-    
+
     // MARK: - Comparison
-    
+
     private func performComparison() {
         guard !compareHash.isEmpty && !hashOutput.isEmpty else {
             comparisonResult = .none
             return
         }
-        
+
         let normalizedCompare = compareHash.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let normalizedOutput = hashOutput.lowercased()
-        
+
         comparisonResult = normalizedCompare == normalizedOutput ? .match : .noMatch
     }
-    
+
     // MARK: - Actions
-    
+
     private func pasteInput() {
         if let string = NSPasteboard.general.string(forType: .string) {
             inputText = string
             selectedFileURL = nil // Clear file selection when pasting text
             updateCharacterCount()
+            generateHash()
         }
     }
-    
+
     private func pasteCompareHash() {
         if let string = NSPasteboard.general.string(forType: .string) {
             compareHash = string
         }
     }
-    
+
     private func clearAll() {
         inputText = ""
         selectedFileURL = nil
@@ -589,12 +565,12 @@ struct HashGeneratorView: View {
         characterCount = 0
         outputCharCount = 0
     }
-    
+
     private func copyOutput() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(hashOutput, forType: .string)
     }
-    
+
     private func updateCharacterCount() {
         characterCount = inputText.count
     }
